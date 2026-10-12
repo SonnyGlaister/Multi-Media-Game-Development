@@ -4,55 +4,60 @@ using UnityEngine;
 
 public class TowerController : MonoBehaviour
 {
-    private GameObject[] enemies;
-
-    public float cooldown = 5;
-    float timer = 0;
-    private Vector3 towerPosition;
-    private GameObject closestEnemy;
-    private float closestEnemyDistance;
+    public float cooldown = 1;
+    public float range = 8;
+    public int damage = 1;
     public Rigidbody projectile;
-    public float projectileSpeed = 20f;
-    void Start()
-    {
-        towerPosition = transform.position;
-    }
+    public float projectileSpeed = 20;
 
-    // I DON'T KNOW IF I LIKE THIS TIMER IMPLEMENTATION OPEN TO SUGGESTIONS
+    public int cost = 5;
+
+    private float timer;
+    private EnemyController currentTarget;
+
     void Update()
     {
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        closestEnemy = null;
-        closestEnemyDistance = Mathf.Infinity;
+        timer += Time.deltaTime;
+        currentTarget = FindTarget();
 
-        foreach(GameObject enemy in enemies)
+        if (currentTarget != null)
         {
-            float distanceToEnemy = Vector3.Distance(towerPosition, enemy.transform.position);
+            // Debug: red line to the current target
+            Debug.DrawLine(transform.position, currentTarget.transform.position, Color.red);
 
-            if (distanceToEnemy < closestEnemyDistance)
+            if (timer >= cooldown)
             {
-                closestEnemyDistance = Vector3.Distance(towerPosition, enemy.transform.position);
-                closestEnemy = enemy;
+                Shoot(currentTarget);
+                timer = 0f;
             }
         }
-
-        timer += Time.deltaTime;
-        // WE SHOULD IMPLEMENT DEBUG HERE TO SHOW WHAT ENEMIES ARE BEING TARGETED BY CHANGING COLOUR OR SUM
-        if (timer >= cooldown && closestEnemy != null)
-        {
-            onCooldownOver(closestEnemy);
-            timer = 0f;
-        }
-
     }
 
-    void onCooldownOver(GameObject target)
+    // Picks the enemy in range that is furthest along the path
+    EnemyController FindTarget()
     {
-        Vector3 projectileDirection = (target.transform.position - towerPosition).normalized;
-        // closestEnemy.gameObject.SetActive(false);
-        Rigidbody projectileInstance = Instantiate(projectile, transform.position, Quaternion.identity);
-        
-        
-        projectileInstance.velocity = projectileDirection * projectileSpeed;
+        EnemyController best = null;
+        float bestProgress = -1f;
+
+        foreach (GameObject go in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            EnemyController enemy = go.GetComponent<EnemyController>();
+            if (enemy == null || !enemy.IsAlive) continue;
+
+            if (Vector3.Distance(transform.position, go.transform.position) > range) continue;
+
+            if (enemy.DistanceTravelled > bestProgress)
+            {
+                bestProgress = enemy.DistanceTravelled;
+                best = enemy;
+            }
+        }
+        return best;
+    }
+
+    void Shoot(EnemyController target)
+    {
+        Rigidbody instance = Instantiate(projectile, transform.position, Quaternion.identity);
+        instance.GetComponent<ProjectileController>().Launch(target.transform, damage, projectileSpeed);
     }
 }

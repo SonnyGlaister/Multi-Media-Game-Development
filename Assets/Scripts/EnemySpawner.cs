@@ -5,29 +5,40 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject enemyPrefab;
+    public float setupTime = 5;
     public int enemySpawnNumber = 5;
-    private int spawnedEnemyTotal;
     public float enemySpawnCooldown;
+
+    public float SetupTimeRemaining { get; private set; }
+    public bool FinishedSpawning => spawnedEnemyTotal >= enemySpawnNumber;
+
+    private int spawnedEnemyTotal;
     private float timer;
+
     // Start is called before the first frame update
     void Start()
     {
-        Instantiate(enemyPrefab, new Vector3(5, 0, 5), Quaternion.identity);
+        SetupTimeRemaining = setupTime;
+        timer = enemySpawnCooldown;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (timer > enemySpawnCooldown && spawnedEnemyTotal < enemySpawnNumber)
+        if (SetupTimeRemaining > 0)
         {
-            Instantiate(enemyPrefab, new Vector3(0, 0, 0), Quaternion.identity);
-            spawnedEnemyTotal ++;
-
-            timer = 0;
-        } else
-        {
-            timer += Time.deltaTime;
+            SetupTimeRemaining -= Time.deltaTime;
+            return;
         }
 
+        if (FinishedSpawning) return;
+
+        timer += Time.deltaTime;
+        if (timer >= enemySpawnCooldown)
+        {
+            Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+            spawnedEnemyTotal++;
+            timer = 0;
+        }
     }
 }

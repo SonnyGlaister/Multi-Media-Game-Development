@@ -4,10 +4,17 @@ using UnityEngine;
 
 public class ProjectileController : MonoBehaviour
 {
+    public int damage = 1;
+    public float speed = 20;
+    public float lifetime = 3;
+
+    private Rigidbody rb;
+    private Transform target;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        Destroy(gameObject, lifetime);
     }
 
     // Update is called once per frame
@@ -16,17 +23,34 @@ public class ProjectileController : MonoBehaviour
         
     }
 
-    void OnBecameInvisible()
+
+    public void Launch(Transform newTarget, int newDamage, float newSpeed)
     {
-        Destroy(gameObject);
+        rb = GetComponent<Rigidbody>();
+        target = newTarget;
+        damage = newDamage;
+        speed = newSpeed;
+        if (target != null)
+        {
+            rb.velocity = (target.position - transform.position).normalized * speed;
+        }
     }
 
-    void OnCollisionEnter(Collision collision)
+    void FixedUpdate()
     {
-        if (collision.gameObject.CompareTag("Enemy"))
+        // Steer towards the target each step; if it died, keep flying straight.
+        if (target != null)
         {
-            Destroy(collision.gameObject);
-            Destroy(gameObject);
+            rb.velocity = (target.position - transform.position).normalized * speed;
         }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        EnemyController enemy = other.GetComponent<EnemyController>();
+        if (enemy == null || !enemy.IsAlive) return;
+
+        enemy.TakeDamage(damage);
+        Destroy(gameObject);
     }
 }

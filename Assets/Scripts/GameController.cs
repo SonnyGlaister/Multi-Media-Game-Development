@@ -1,0 +1,129 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using TMPro;
+
+public class GameController : MonoBehaviour
+{
+    public static GameController Instance { get; private set; }
+
+    public int startingCurrency = 5;
+    public int startingBaseHealth = 3;
+
+    public EnemySpawner spawner;
+    public TextMeshProUGUI hudText;
+    public TextMeshProUGUI messageText;
+
+    public int Currency { get; private set; }
+    public int BaseHealth { get; private set; }
+    public bool IsGameOver { get; private set; }
+
+    private float messageTimer;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        Instance = this;
+        Currency = startingCurrency;
+        BaseHealth = startingBaseHealth;
+        if (messageText != null) messageText.text = "";
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        UpdateHud();
+
+        if (IsGameOver)
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+            return;
+        }
+
+        CheckWin();
+
+        if (messageTimer > 0)
+        {
+            messageTimer -= Time.deltaTime;
+            if (messageTimer <= 0 && messageText != null) messageText.text = "";
+        }
+    }
+
+    // Updates currency on enemy death
+    public void EnemyKilled(int reward)
+    {
+        if (IsGameOver) return;
+        Currency += reward;
+    }
+
+    // Updates base health on enemy hit; ends game if base destroyed
+    public void EnemyReachedBase(int damage)
+    {
+        if (IsGameOver) return;
+        BaseHealth = Mathf.Max(BaseHealth - damage, 0);
+        if (BaseHealth <= 0)
+        {
+            EndGame(false);
+        }
+    }
+
+    // Returns true and decreases currency if player can afford item, false otherwise
+    public bool Buy(int cost)
+    {
+        if (IsGameOver || Currency < cost) return false;
+        Currency -= cost;
+        return true;
+    }
+
+    // Show message on the screen
+    public void ShowMessage(string message, float duration = 2)
+    {
+        if (messageText == null) return;
+        messageText.text = message;
+        messageTimer = duration;
+    }
+
+    // Check if the player won the game
+    private void CheckWin()
+    {
+        if (spawner == null || !spawner.FinishedSpawning) return;
+        if (GameObject.FindGameObjectsWithTag("Enemy").Length == 0)
+        {
+            EndGame(true);
+        }
+    }
+
+    // End the game with player winning or losing
+    private void  EndGame(bool won)
+    {
+        IsGameOver = true;
+        Time.timeScale = 0;
+        if (messageText != null)
+        {
+            if (won)
+            {
+                messageText.text = "YOU WIN!\nPress R to restart";
+            } else
+            {
+                messageText.text = "BASE DESTROYED\nPress R to restart";
+            }
+        }
+        messageTimer = 0;
+    }
+
+    // Updates hud text
+    private void UpdateHud()
+    {
+        if (hudText == null) return;
+        string hud = $"Gold: {Currency}\nBase HP: {BaseHealth}";
+        if (spawner != null && spawner.SetupTimeRemaining > 0)
+        {
+            hud += $"\nEnemies in: {Mathf.CeilToInt(spawner.SetupTimeRemaining)}";
+        }
+        hudText.text = hud;
+    }
+}
