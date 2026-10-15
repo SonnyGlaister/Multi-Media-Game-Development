@@ -9,6 +9,7 @@ public class TowerPlacer : MonoBehaviour
     public GameObject baseObject;
     public CinemachinePath path;
     public Collider ground;
+    public GameController gameController;
 
     public double minPathDist = 1;
     public double minTowerDist = 1;
@@ -25,7 +26,7 @@ public class TowerPlacer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (GameController.Instance.IsGameOver) return;
+        if (GameController.Instance.IsGameOver || !gameController.HasGameStarted) return;
 
         if (Input.GetMouseButtonDown(0))
         {
