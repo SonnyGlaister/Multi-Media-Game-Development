@@ -72,7 +72,7 @@ public class GameController : MonoBehaviour
     }
 
     // Returns true and decreases currency if player can afford item, false otherwise
-    public bool Buy(int cost)
+    public bool CanAfford(int cost)
     {
         if (IsGameOver || Currency < cost) return false;
         Currency -= cost;
