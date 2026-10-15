@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public GameObject enemyPrefab;
+    public GameObject[] enemyPrefabs; //Insert multiple enemy types
     public GameController gameController;
     public float setupTime = 5;
-    public int enemySpawnNumber = 5;
+    public int[] enemySpawnNumbers; //Set amounts of enemy types
     public float enemySpawnCooldown;
-
+    private int enemySpawnNumber = 0;
     public float SetupTimeRemaining { get; private set; }
     public bool FinishedSpawning => spawnedEnemyTotal >= enemySpawnNumber;
 
@@ -21,8 +21,13 @@ public class EnemySpawner : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        foreach (int num in enemySpawnNumbers) //Total enemies to spawn stored
+        {
+            enemySpawnNumber += num;
+        }
         SetupTimeRemaining = setupTime;
         timer = enemySpawnCooldown;
+
     }
 
     // Update is called once per frame
@@ -38,13 +43,22 @@ public class EnemySpawner : MonoBehaviour
 
             if (FinishedSpawning) return;
 
-            timer += Time.deltaTime;
-            if (timer >= enemySpawnCooldown)
+        timer += Time.deltaTime;
+        if (timer >= enemySpawnCooldown)
+        {
+            int select = 0;
+            for (int i = 0; i < enemySpawnNumbers.Length; i++)
             {
-                Instantiate(enemyPrefab, transform.position, Quaternion.identity);
-                spawnedEnemyTotal++;
-                timer = 0;
+                if (enemySpawnNumbers[i] != 0)
+                {
+                    select = i;
+                    break;
+                }
             }
+            Instantiate(enemyPrefabs[select], transform.position, Quaternion.identity);
+            spawnedEnemyTotal++;
+            enemySpawnNumbers[select] -= 1;
+            timer = 0;
         }
 
     }

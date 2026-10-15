@@ -947,10 +947,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a9adea96a5b616458f9deec85c20302, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 8533751683950400790, guid: 2aba422435ea081418e8d3fedd41616b, type: 3}
+  enemyPrefabs:
+  - {fileID: 8533751683950400790, guid: 2aba422435ea081418e8d3fedd41616b, type: 3}
+  - {fileID: 8935194750780172562, guid: 5431d83c4e78c4440b2acfe98a345e75, type: 3}
   gameController: {fileID: 2081817159}
   setupTime: 5
-  enemySpawnNumber: 15
+  enemySpawnNumbers: 0100000007000000
   enemySpawnCooldown: 0.5
 --- !u!4 &864900003
 Transform:
