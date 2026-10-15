@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
@@ -14,10 +15,12 @@ public class GameController : MonoBehaviour
     public EnemySpawner spawner;
     public TextMeshProUGUI hudText;
     public TextMeshProUGUI messageText;
+    public Button startButton;
 
     public int Currency { get; private set; }
     public int BaseHealth { get; private set; }
     public bool IsGameOver { get; private set; }
+    public bool HasGameStarted { get; private set; }
 
     private float messageTimer;
 
@@ -25,9 +28,16 @@ public class GameController : MonoBehaviour
     void Start()
     {
         Instance = this;
+
         Currency = startingCurrency;
         BaseHealth = startingBaseHealth;
+
+        HasGameStarted = false;
+        IsGameOver = false;
+
         if (messageText != null) messageText.text = "";
+        
+        startButton.onClick.AddListener(StartGame);
     }
 
     // Update is called once per frame
@@ -39,6 +49,7 @@ public class GameController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.R))
             {
+                Time.timeScale = 1f;
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
             return;
@@ -125,5 +136,15 @@ public class GameController : MonoBehaviour
             hud += $"\nEnemies in: {Mathf.CeilToInt(spawner.SetupTimeRemaining)}";
         }
         hudText.text = hud;
+
+        if (HasGameStarted)
+        {
+            startButton.gameObject.SetActive(false);
+        }
+    }
+
+    private void StartGame()
+    {
+        HasGameStarted = true;
     }
 }
