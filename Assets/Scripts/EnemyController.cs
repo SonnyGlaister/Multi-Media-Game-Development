@@ -9,12 +9,14 @@ public class EnemyController : MonoBehaviour
     public int reward = 10;
     public int damageToBase = 1;
 
+    public string type;
+
     private int health;
     
     private CinemachinePath path;
     private CinemachineDollyCart cart;
 
-    public float DistanceTravelled => cart.m_Position;
+    public float DistanceTravelled => cart != null ? cart.m_Position : 0f;
     public bool IsAlive { get; private set; } = true;
 
     // Start is called before the first frame update
@@ -57,7 +59,7 @@ public class EnemyController : MonoBehaviour
     public void ReachEnd()
     {
         IsAlive = false;
-        GameController.Instance.EnemyReachedBase(damageToBase);
+        GameController.Instance.EnemyReachedBase(damageToBase, type);
         Destroy(gameObject);
     }
 }

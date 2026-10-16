@@ -16,11 +16,14 @@ public class GameController : MonoBehaviour
     public TextMeshProUGUI hudText;
     public TextMeshProUGUI messageText;
     public Button startButton;
+    public GameObject skillTree;
 
-    public int Currency { get; private set; }
+    public int Currency { get; set; }
     public int BaseHealth { get; private set; }
     public bool IsGameOver { get; private set; }
     public bool HasGameStarted { get; private set; }
+    public int redDamage { get; private set; }
+    public int yellowDamage { get; private set; }
 
     private float messageTimer;
 
@@ -34,6 +37,9 @@ public class GameController : MonoBehaviour
 
         HasGameStarted = false;
         IsGameOver = false;
+
+        redDamage = 0;
+        yellowDamage = 0;
 
         if (messageText != null) messageText.text = "";
         
@@ -51,6 +57,7 @@ public class GameController : MonoBehaviour
             {
                 Time.timeScale = 1f;
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                ResetPerks();
             }
             return;
         }
@@ -72,10 +79,20 @@ public class GameController : MonoBehaviour
     }
 
     // Updates base health on enemy hit; ends game if base destroyed
-    public void EnemyReachedBase(int damage)
+    public void EnemyReachedBase(int damage, string type)
     {
         if (IsGameOver) return;
         BaseHealth = Mathf.Max(BaseHealth - damage, 0);
+
+        if (type == "red")
+        {
+            redDamage ++;
+        }
+        if (type == "yellow")
+        {
+            yellowDamage ++;
+        }
+
         if (BaseHealth <= 0)
         {
             EndGame(false);
@@ -83,10 +100,19 @@ public class GameController : MonoBehaviour
     }
 
     // Returns true and decreases currency if player can afford item, false otherwise
+    public bool Purchase(int cost)
+    {
+        if (IsGameOver || !CanAfford(cost)) return false;
+        Currency -= cost;
+        return true;
+    }
+
     public bool CanAfford(int cost)
     {
-        if (IsGameOver || Currency < cost) return false;
-        Currency -= cost;
+        if (Currency < cost)
+        {
+            return false;
+        }
         return true;
     }
 
@@ -108,8 +134,14 @@ public class GameController : MonoBehaviour
         }
     }
 
+    private void StartGame()
+    {
+        HasGameStarted = true;
+    }
+
+
     // End the game with player winning or losing
-    private void  EndGame(bool won)
+    private void EndGame(bool won)
     {
         IsGameOver = true;
         Time.timeScale = 0;
@@ -130,7 +162,7 @@ public class GameController : MonoBehaviour
     private void UpdateHud()
     {
         if (hudText == null) return;
-        string hud = $"Gold: {Currency}\nBase HP: {BaseHealth}";
+        string hud = $"Gold: {Currency}\nBase HP: {BaseHealth}\nRed Damage: {redDamage}\nYellow Damage: {yellowDamage}";
         if (spawner != null && spawner.SetupTimeRemaining > 0)
         {
             hud += $"\nEnemies in: {Mathf.CeilToInt(spawner.SetupTimeRemaining)}";
@@ -140,11 +172,14 @@ public class GameController : MonoBehaviour
         if (HasGameStarted)
         {
             startButton.gameObject.SetActive(false);
+
         }
     }
 
-    private void StartGame()
+
+    private void ResetPerks()
     {
-        HasGameStarted = true;
+        TowerController.redPerkPurchased = false;
+        TowerController.yellowPerkPurchased = false;
     }
 }

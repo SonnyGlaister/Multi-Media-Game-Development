@@ -5,7 +5,6 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject[] enemyPrefabs; //Insert multiple enemy types
-    public GameController gameController;
     public float setupTime = 5;
     public int[] enemySpawnNumbers; //Set amounts of enemy types
     public float enemySpawnCooldown;
@@ -33,7 +32,7 @@ public class EnemySpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (gameController.HasGameStarted)
+        if (GameController.Instance.HasGameStarted)
         {
             if (SetupTimeRemaining > 0)
             {
@@ -43,23 +42,24 @@ public class EnemySpawner : MonoBehaviour
 
             if (FinishedSpawning) return;
 
-        timer += Time.deltaTime;
-        if (timer >= enemySpawnCooldown)
-        {
-            int select = 0;
-            for (int i = 0; i < enemySpawnNumbers.Length; i++)
+            timer += Time.deltaTime;
+            if (timer >= enemySpawnCooldown)
             {
-                if (enemySpawnNumbers[i] != 0)
+                int select = 0;
+                for (int i = 0; i < enemySpawnNumbers.Length; i++)
                 {
-                    select = i;
-                    break;
+                    if (enemySpawnNumbers[i] != 0)
+                    {
+                        select = i;
+                        break;
+                    }
                 }
+                Instantiate(enemyPrefabs[select], transform.position, Quaternion.identity);
+                spawnedEnemyTotal++;
+                enemySpawnNumbers[select] -= 1;
+                timer = 0;
             }
-            Instantiate(enemyPrefabs[select], transform.position, Quaternion.identity);
-            spawnedEnemyTotal++;
-            enemySpawnNumbers[select] -= 1;
-            timer = 0;
-        }
 
+        }
     }
 }

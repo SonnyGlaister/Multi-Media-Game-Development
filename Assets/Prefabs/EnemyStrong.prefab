@@ -139,3 +139,4 @@ MonoBehaviour:
   maxHealth: 6
   reward: 25
   damageToBase: 2
+  type: yellow
