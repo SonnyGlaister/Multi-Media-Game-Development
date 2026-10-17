@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TowerController : MonoBehaviour
 {
-    public float cooldown = 1;
+    public static float cooldown = 1f;
     public float range = 8;
     public int damage = 1;
     public Rigidbody projectile;
@@ -14,6 +14,8 @@ public class TowerController : MonoBehaviour
 
     private float timer;
     private EnemyController currentTarget;
+    public static bool redPerkPurchased = false;
+    public static bool yellowPerkPurchased = false;
 
     void Update()
     {
@@ -25,11 +27,28 @@ public class TowerController : MonoBehaviour
             // Debug: red line to the current target
             Debug.DrawLine(transform.position, currentTarget.transform.position, Color.red);
 
+            // We should add debug to show radius of towers
             if (timer >= cooldown)
             {
                 Shoot(currentTarget);
                 timer = 0f;
             }
+        }
+
+        if (redPerkPurchased)
+        {
+            cooldown = 0.5f;
+        } else
+        {
+            cooldown = 1f;
+        }
+
+        if (yellowPerkPurchased)
+        {
+            range = 16;
+        } else
+        {
+            range = 8;
         }
     }
 
@@ -41,8 +60,12 @@ public class TowerController : MonoBehaviour
 
         foreach (GameObject go in GameObject.FindGameObjectsWithTag("Enemy"))
         {
+            if (go == null) continue;
+
             EnemyController enemy = go.GetComponent<EnemyController>();
-            if (enemy == null || !enemy.IsAlive) continue;
+            // if (enemy == null || !enemy.IsAlive) continue;
+            if (enemy == null) continue;
+            if (!enemy.IsAlive) continue;
 
             if (Vector3.Distance(transform.position, go.transform.position) > range) continue;
 
