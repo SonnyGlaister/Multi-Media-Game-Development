@@ -1,18 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
+using TMPro;
 using UnityEngine;
+
 
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject[] enemyPrefabs; //Insert multiple enemy types
-    public float setupTime = 5;
+    public bool randomise = false; //Randomise no. each enemy type
+    public float setupTime = 3;
     public int[][] enemySpawnNumbers =
     {
         new int[] {6,2},
         new int[] {6,4},
         new int[] {12,10}
     }; //Set amounts of enemy types for all waves
+
     public float enemySpawnCooldown;
     private int enemySpawnNumber = 0;
     public float SetupTimeRemaining { get; private set; }
@@ -27,6 +31,8 @@ public class EnemySpawner : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (randomise) randomEnemies();
+
         foreach (int num in enemySpawnNumbers[waveNum]) //Total enemies to spawn this wave stored
         {
             enemySpawnNumber += num;
@@ -89,5 +95,29 @@ public class EnemySpawner : MonoBehaviour
         enemySpawnNumber = sumEnemy; 
         SetupTimeRemaining = setupTime;
         timer = enemySpawnCooldown;
+    }
+
+    // Randomise division of total enemies between input enemy types
+    private void randomEnemies()
+    {
+        for (int i = 0; i < enemySpawnNumbers.Length; i++)
+        {
+            int total = 0;
+            for (int j = 0; j < enemySpawnNumbers[i].Length; j++)
+            {
+                total += enemySpawnNumbers[i][j];
+            }
+
+            for (int k = 0; k < enemySpawnNumbers[i].Length; k++)
+            {
+                if (k == enemySpawnNumbers[i].Length -1)
+                {
+                    enemySpawnNumbers[i][k] = total;
+                    break;
+                }
+                enemySpawnNumbers[i][k] = Random.Range(0, total + 1);
+                total -= enemySpawnNumbers[i][k];
+            }
+        }
     }
 }
