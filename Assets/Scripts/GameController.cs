@@ -11,6 +11,7 @@ public class GameController : MonoBehaviour
 
     public int startingCurrency = 5;
     public int startingBaseHealth = 3;
+    public int totalWaves = 2;
 
     public EnemySpawner spawner;
     public TextMeshProUGUI hudText;
@@ -22,24 +23,35 @@ public class GameController : MonoBehaviour
     public int BaseHealth { get; private set; }
     public bool IsGameOver { get; private set; }
     public bool HasGameStarted { get; private set; }
+
+    public bool HasWaveStarted { get; private set; }
     public int redDamage { get; private set; }
     public int yellowDamage { get; private set; }
 
+    public int currentWave { get; private set; }
+
     private float messageTimer;
 
+
+    // Awake is called immediately to initiate the Instance
+    private void Awake()
+    {
+        Instance = this;
+    }
     // Start is called before the first frame update
     void Start()
     {
-        Instance = this;
-
         Currency = startingCurrency;
         BaseHealth = startingBaseHealth;
 
         HasGameStarted = false;
         IsGameOver = false;
+        HasWaveStarted = true;
 
         redDamage = 0;
         yellowDamage = 0;
+
+        currentWave = 0;
 
         if (messageText != null) messageText.text = "";
         
@@ -62,7 +74,12 @@ public class GameController : MonoBehaviour
             return;
         }
 
-        CheckWin();
+        if (! HasWaveStarted)
+        {
+            return;
+        }
+
+        CheckWaveEnd();
 
         if (messageTimer > 0)
         {
@@ -124,13 +141,26 @@ public class GameController : MonoBehaviour
         messageTimer = duration;
     }
 
-    // Check if the player won the game
-    private void CheckWin()
+    // Check if wave is over, move to next wave
+    private void CheckWaveEnd()
     {
         if (spawner == null || !spawner.FinishedSpawning) return;
         if (GameObject.FindGameObjectsWithTag("Enemy").Length == 0)
         {
+            currentWave++;
+            CheckWin();
+        }
+    }
+    // Check if the player won the game
+    private void CheckWin()
+    {
+        if (currentWave >= totalWaves)
+        {
             EndGame(true);
+        }
+        else
+        {
+            SetupWave();
         }
     }
 
@@ -139,6 +169,17 @@ public class GameController : MonoBehaviour
         HasGameStarted = true;
     }
 
+    //Make spawner not ready, call to reset the spawner.
+    private void SetupWave()
+    {
+        HasWaveStarted = false;
+        spawner.ResetSpawner();
+    }
+
+    public void StartWave()
+    {
+        HasWaveStarted = true;
+    }
 
     // End the game with player winning or losing
     private void EndGame(bool won)
@@ -162,7 +203,7 @@ public class GameController : MonoBehaviour
     private void UpdateHud()
     {
         if (hudText == null) return;
-        string hud = $"Gold: {Currency}\nBase HP: {BaseHealth}\nRed Damage: {redDamage}\nYellow Damage: {yellowDamage}";
+        string hud = $"Gold: {Currency}\nBase HP: {BaseHealth}\nRed Damage: {redDamage}\nYellow Damage: {yellowDamage}\nWave Number: {currentWave+1}";
         if (spawner != null && spawner.SetupTimeRemaining > 0)
         {
             hud += $"\nEnemies in: {Mathf.CeilToInt(spawner.SetupTimeRemaining)}";
