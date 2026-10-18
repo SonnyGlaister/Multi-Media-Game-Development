@@ -169,6 +169,7 @@ public class GameController : MonoBehaviour
         HasGameStarted = true;
     }
 
+    //Make spawner not ready, call to reset the spawner.
     private void SetupWave()
     {
         HasWaveStarted = false;
