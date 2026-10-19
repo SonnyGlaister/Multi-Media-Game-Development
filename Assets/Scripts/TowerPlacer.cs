@@ -26,7 +26,8 @@ public class TowerPlacer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (GameController.Instance.IsGameOver || !GameController.Instance.HasGameStarted) return;
+        
+        if (GameController.Instance.IsGameOver || !GameController.Instance.HasGameStarted || SkillTreeMenu.Instance.isOpen) return;
 
         if (Input.GetMouseButtonDown(0))
         {
