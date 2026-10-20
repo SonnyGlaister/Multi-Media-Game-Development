@@ -16,6 +16,8 @@ public class TowerController : MonoBehaviour
     private EnemyController currentTarget;
     public static bool redPerkPurchased = false;
     public static bool yellowPerkPurchased = false;
+    public static bool redPerkPurchased1 = false;
+    public static bool yellowPerkPurchased1 = false;
 
     void Update()
     {
@@ -35,18 +37,24 @@ public class TowerController : MonoBehaviour
             }
         }
 
-        if (redPerkPurchased)
+        if (redPerkPurchased & !redPerkPurchased1)
         {
             cooldown = 0.5f;
+        } else if (redPerkPurchased1)
+        {
+            cooldown = 0.25f;
         } else
         {
             cooldown = 1f;
         }
 
-        if (yellowPerkPurchased)
+        if (yellowPerkPurchased & !yellowPerkPurchased1)
         {
             range = 16;
-        } else
+        } else if (yellowPerkPurchased1)
+        {
+            range = 24;
+        }else
         {
             range = 8;
         }
