@@ -23,14 +23,18 @@ public class SkillTree : MonoBehaviour
 
     public int redDamageThreshold = 1;
     public int yellowDamageThreshold = 1;
-    private int Rbought = 0;
-    private int Ybought = 0;
+    public static int Rbought = 0;
+    public static int Ybought = 0;
     public bool isAboveYellowDamageThreshold;
     public bool isAboveRedDamageThreshold;
 
     // Start is called before the first frame update
     void Start()
     {
+        RSeqTower = 0;
+        YSeqTower = 0;
+        Rbought = 0;
+        Ybought = 0;
         redPerk.onClick.AddListener(BuyRed);
         yellowPerk.onClick.AddListener(BuyYellow);
         redPerk1.onClick.AddListener(BuyRed1);

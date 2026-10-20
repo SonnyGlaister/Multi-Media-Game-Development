@@ -226,5 +226,7 @@ public class GameController : MonoBehaviour
     {
         TowerController.redPerkPurchased = false;
         TowerController.yellowPerkPurchased = false;
+        TowerController.redPerkPurchased1 = false;
+        TowerController.yellowPerkPurchased1 = false;
     }
 }
