@@ -26,7 +26,9 @@ public class GameController : MonoBehaviour
 
     public bool HasWaveStarted { get; private set; }
     public int redDamage { get; private set; }
+    public int redDamageHid { get; set; }
     public int yellowDamage { get; private set; }
+    public int yellowDamageHid { get; set; }
 
     public int currentWave { get; private set; }
 
@@ -104,10 +106,12 @@ public class GameController : MonoBehaviour
         if (type == "red")
         {
             redDamage ++;
+            redDamageHid++;
         }
         if (type == "yellow")
         {
             yellowDamage ++;
+            yellowDamageHid++;
         }
 
         if (BaseHealth <= 0)

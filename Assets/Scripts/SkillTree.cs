@@ -23,7 +23,8 @@ public class SkillTree : MonoBehaviour
 
     public int redDamageThreshold = 1;
     public int yellowDamageThreshold = 1;
-
+    private int Rbought = 0;
+    private int Ybought = 0;
     public bool isAboveYellowDamageThreshold;
     public bool isAboveRedDamageThreshold;
 
@@ -39,22 +40,37 @@ public class SkillTree : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        isAboveRedDamageThreshold = IsAboveThreshold(GameController.Instance.redDamage, redDamageThreshold);
+
+        isAboveRedDamageThreshold = IsAboveThreshold(GameController.Instance.redDamageHid, redDamageThreshold);
         if (isAboveRedDamageThreshold)
         {
-            TowerController.redPerkPurchased = false;
-            TowerController.redPerkPurchased1 = false;
+            if (TowerController.redPerkPurchased1)
+            {
+                TowerController.redPerkPurchased1 = false;
+                GameController.Instance.redDamageHid= GameController.Instance.redDamageHid - redDamageThreshold;
+            } else 
+            { 
+                TowerController.redPerkPurchased = false;
+            }
         }
-        isAboveYellowDamageThreshold = IsAboveThreshold(GameController.Instance.yellowDamage, yellowDamageThreshold);
+        isAboveYellowDamageThreshold = IsAboveThreshold(GameController.Instance.yellowDamageHid, yellowDamageThreshold);
         if (isAboveYellowDamageThreshold)
         {
-            TowerController.yellowPerkPurchased = false;
-            TowerController.yellowPerkPurchased1 = false;
+            if (TowerController.yellowPerkPurchased1)
+            {
+                TowerController.yellowPerkPurchased1 = false;
+                GameController.Instance.yellowDamageHid = GameController.Instance.yellowDamageHid - yellowDamageThreshold;
+            }
+            else
+            {
+                TowerController.yellowPerkPurchased = false;
+            }
+
         }
-        SetButtonState(redPerk, Color.red, TowerController.redPerkPurchased, redPrice, isAboveRedDamageThreshold,1,0);
-        SetButtonState(yellowPerk, Color.yellow, TowerController.yellowPerkPurchased, yellowPrice, isAboveYellowDamageThreshold,1,0);
-        SetButtonState(redPerk1, Color.red, TowerController.redPerkPurchased1, redPrice, isAboveRedDamageThreshold,2,RSeqTower);
-        SetButtonState(yellowPerk1, Color.yellow, TowerController.yellowPerkPurchased1, yellowPrice, isAboveYellowDamageThreshold,2,YSeqTower);
+        SetButtonState(redPerk, Color.red, TowerController.redPerkPurchased, redPrice, isAboveRedDamageThreshold,1,0,Rbought);
+        SetButtonState(yellowPerk, Color.yellow, TowerController.yellowPerkPurchased, yellowPrice, isAboveYellowDamageThreshold,1,0, Ybought);
+        SetButtonState(redPerk1, Color.red, TowerController.redPerkPurchased1, redPrice, isAboveRedDamageThreshold,2,RSeqTower, Rbought);
+        SetButtonState(yellowPerk1, Color.yellow, TowerController.yellowPerkPurchased1, yellowPrice, isAboveYellowDamageThreshold,2,YSeqTower, Ybought);
 
     }
 
@@ -64,6 +80,7 @@ public class SkillTree : MonoBehaviour
         {
             return;
         }
+        Rbought++;
         TowerController.redPerkPurchased = true;
         GameController.Instance.Currency -= redPrice;
         RSeqTower = 1;
@@ -75,6 +92,7 @@ public class SkillTree : MonoBehaviour
         {
             return;
         }
+        Ybought++;
         TowerController.yellowPerkPurchased = true;
         GameController.Instance.Currency -= yellowPrice;
         YSeqTower = 1;
@@ -87,6 +105,7 @@ public class SkillTree : MonoBehaviour
         {
             return;
         }
+        Rbought++;
         TowerController.redPerkPurchased1 = true;
         GameController.Instance.Currency -= redPrice;
     }
@@ -97,6 +116,7 @@ public class SkillTree : MonoBehaviour
         {
             return;
         }
+        Ybought++;
         TowerController.yellowPerkPurchased1 = true;
         GameController.Instance.Currency -= yellowPrice;
 
@@ -111,21 +131,29 @@ public class SkillTree : MonoBehaviour
         return false;
     }
 
-    void SetButtonState(Button perk, Color baseColor, bool isPurchased, int price, bool aboveThreshold, int version, int tower )
+    void SetButtonState(Button perk, Color baseColor, bool isPurchased, int price, bool aboveThreshold, int version, int tower ,int boughtNum)
     {
         if(aboveThreshold){
             perk.image.color = Color.black;
             perk.GetComponentInChildren<TextMeshProUGUI>().text = "Disabled";
             perk.interactable = false;
-        } else if (version == 2 & tower == 0)
+        } else if (!isPurchased & version == 2 & tower == 1 & boughtNum == 2 )
+        {
+            perk.image.color = Color.black;
+            perk.GetComponentInChildren<TextMeshProUGUI>().text = "disabled";
+            perk.interactable = false;
+        }
+        else if (version == 2 & tower == 0)
         {
             perk.image.color = Color.gray;
             perk.interactable = false;
         }
-        else if (isPurchased)
+        else if (boughtNum >= version)
         {
             perk.image.color = Color.green;
             perk.interactable = false;
+            perk.GetComponentInChildren<TextMeshProUGUI>().text = "Bought";
+            return;
         } else if (!GameController.Instance.CanAfford(price))
         {
             perk.image.color = Color.gray;
