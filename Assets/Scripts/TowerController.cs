@@ -50,13 +50,13 @@ public class TowerController : MonoBehaviour
 
         if (yellowPerkPurchased & !yellowPerkPurchased1)
         {
-            range = 16;
+            range = 6;
         } else if (yellowPerkPurchased1)
         {
-            range = 24;
+            range = 8;
         }else
         {
-            range = 8;
+           
         }
     }
 

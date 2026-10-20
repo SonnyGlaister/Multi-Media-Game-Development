@@ -12,9 +12,11 @@ public class EnemySpawner : MonoBehaviour
     public float setupTime = 3;
     public int[][] enemySpawnNumbers =
     {
-        new int[] {6,2},
-        new int[] {6,4},
-        new int[] {12,10}
+        new int[] {10,0},
+        new int[] {8,6},
+        new int[] {8,10},
+        new int[] {2, 15},
+        new int[] {20, 20}
     }; //Set amounts of enemy types for all waves
 
     public float enemySpawnCooldown;
@@ -31,7 +33,7 @@ public class EnemySpawner : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if (randomise) randomEnemies();
+        if (randomise && waveNum > 0) randomEnemies();
 
         foreach (int num in enemySpawnNumbers[waveNum]) //Total enemies to spawn this wave stored
         {
