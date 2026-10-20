@@ -137,6 +137,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 6
-  reward: 25
+  reward: 2
   damageToBase: 2
   type: yellow
