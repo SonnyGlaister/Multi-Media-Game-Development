@@ -83,6 +83,7 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
+    //Reset and update Spawner variables for each wave
     public void ResetSpawner()
     {
         waveNum = GameController.Instance.currentWave;
