@@ -71,10 +71,10 @@ public class SkillTree : MonoBehaviour
             }
 
         }
-        SetButtonState(redPerk, Color.red, TowerController.redPerkPurchased, redPrice, isAboveRedDamageThreshold,1,0,Rbought);
-        SetButtonState(yellowPerk, Color.yellow, TowerController.yellowPerkPurchased, yellowPrice, isAboveYellowDamageThreshold,1,0, Ybought);
-        SetButtonState(redPerk1, Color.red, TowerController.redPerkPurchased1, redPrice, isAboveRedDamageThreshold,2,RSeqTower, Rbought);
-        SetButtonState(yellowPerk1, Color.yellow, TowerController.yellowPerkPurchased1, yellowPrice, isAboveYellowDamageThreshold,2,YSeqTower, Ybought);
+        SetButtonState(redPerk, Color.red, TowerController.redPerkPurchased, redPrice, isAboveRedDamageThreshold,1,0,Rbought, "FireRate+ ");
+        SetButtonState(yellowPerk, Color.yellow, TowerController.yellowPerkPurchased, yellowPrice, isAboveYellowDamageThreshold,1,0, Ybought, "Range+ ");
+        SetButtonState(redPerk1, Color.red, TowerController.redPerkPurchased1, redPrice, isAboveRedDamageThreshold,2,RSeqTower, Rbought, "FireRate+ ");
+        SetButtonState(yellowPerk1, Color.yellow, TowerController.yellowPerkPurchased1, yellowPrice, isAboveYellowDamageThreshold,2,YSeqTower, Ybought, "Range+ ");
 
     }
 
@@ -135,9 +135,10 @@ public class SkillTree : MonoBehaviour
         return false;
     }
 
-    void SetButtonState(Button perk, Color baseColor, bool isPurchased, int price, bool aboveThreshold, int version, int tower ,int boughtNum)
+    void SetButtonState(Button perk, Color baseColor, bool isPurchased, int price, bool aboveThreshold, int version, int tower ,int boughtNum, string name)
     {
-        if(aboveThreshold){
+        perk.GetComponentInChildren<TextMeshProUGUI>().text = (name + "(" + price + ")");
+        if (aboveThreshold){
             perk.image.color = Color.black;
             perk.GetComponentInChildren<TextMeshProUGUI>().text = "Disabled";
             perk.interactable = false;
