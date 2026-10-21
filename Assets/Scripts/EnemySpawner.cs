@@ -8,14 +8,16 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject[] enemyPrefabs; //Insert multiple enemy types
-    public bool randomise = false; //Randomise no. each enemy type
+    public bool randomise = true; //Include logarithmic randomisation to wave enemies
     public float setupTime = 3;
     public int[][] enemySpawnNumbers =
     {
-        new int[] {6,2},
-        new int[] {6,4},
-        new int[] {12,10}
-    }; //Set amounts of enemy types for all waves
+        new int[] {10,-1},
+        new int[] {8,6},
+        new int[] {8,10},
+        new int[] {2, 15},
+        new int[] {20, 20}
+    }; //Set amounts of enemy types for all waves. If -1, cannot be randomly spawned in wave.
 
     public float enemySpawnCooldown;
     private int enemySpawnNumber = 0;
@@ -26,15 +28,22 @@ public class EnemySpawner : MonoBehaviour
     private float timer;
     private int waveNum=0;
 
+    private float RANDOMDIVISOR = 2.2F;
+
 
 
     // Start is called before the first frame update
     void Start()
     {
-        if (randomise) randomEnemies();
+        Random.InitState(System.DateTime.Now.Millisecond);
+        if (randomise && waveNum > 0) standardRandomisation();
 
         foreach (int num in enemySpawnNumbers[waveNum]) //Total enemies to spawn this wave stored
         {
+            if (num == -1)
+            {
+                continue;
+            }
             enemySpawnNumber += num;
         }
         waveNum = GameController.Instance.currentWave;
@@ -92,32 +101,52 @@ public class EnemySpawner : MonoBehaviour
         {
             sumEnemy += num;
         }
-        enemySpawnNumber = sumEnemy; 
+        enemySpawnNumber = sumEnemy;
+        if (randomise) standardRandomisation();
         SetupTimeRemaining = setupTime;
         timer = enemySpawnCooldown;
     }
 
-    // Randomise division of total enemies between input enemy types
-    private void randomEnemies()
+    //Logarithmic wave randomisation
+    private void standardRandomisation()
     {
-        for (int i = 0; i < enemySpawnNumbers.Length; i++)
-        {
-            int total = 0;
-            for (int j = 0; j < enemySpawnNumbers[i].Length; j++)
-            {
-                total += enemySpawnNumbers[i][j];
-            }
+        int l = enemySpawnNumbers[waveNum].Length;
 
-            for (int k = 0; k < enemySpawnNumbers[i].Length; k++)
+        float randomChance = Mathf.Log10(waveNum);
+        randomChance = randomChance / RANDOMDIVISOR;
+
+        if (randomChance > 0.7)
+        {
+            randomChance = 0.7F;
+        }
+
+
+        List<int> enemyTypes = new List<int>();
+
+        for (int j = 0; j < l; j++)
+        {
+            if (enemySpawnNumbers[waveNum][j] != -1)
             {
-                if (k == enemySpawnNumbers[i].Length -1)
-                {
-                    enemySpawnNumbers[i][k] = total;
-                    break;
-                }
-                enemySpawnNumbers[i][k] = Random.Range(0, total + 1);
-                total -= enemySpawnNumbers[i][k];
+                enemyTypes.Add(j);
             }
         }
+
+        // Defined percentage of randomisation to wave
+
+        int totalRandomised = (int)(randomChance * enemySpawnNumber);
+
+        for (int i = 0; i < totalRandomised; i++)
+        {
+            // Take the standard wave format and mutate totalRandomised amount of enemies
+
+            int r1 = enemyTypes[Random.Range(0,enemyTypes.Count)];        
+            enemySpawnNumbers[waveNum][r1] -= 1;
+
+            int r2 = enemyTypes[Random.Range(0, enemyTypes.Count)];
+            enemySpawnNumbers[waveNum][r2] += 1;
+
+        }
+
     }
+    
 }
