@@ -1914,8 +1914,8 @@ MonoBehaviour:
   enemyPrefabs:
   - {fileID: 8533751683950400790, guid: 2aba422435ea081418e8d3fedd41616b, type: 3}
   - {fileID: 8935194750780172562, guid: 5431d83c4e78c4440b2acfe98a345e75, type: 3}
-  randomise: 0
-  setupTime: 0
+  randomise: 1
+  setupTime: 2
   enemySpawnCooldown: 0.5
 --- !u!4 &864900003
 Transform:
