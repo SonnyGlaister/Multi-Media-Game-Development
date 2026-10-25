@@ -2,10 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.EventSystems;
 
 public class TowerPlacer : MonoBehaviour
 {
     public TowerController tower;
+    public TowerController[] towerPrefabs;
     public GameObject baseObject;
     public CinemachinePath path;
     public Collider ground;
@@ -14,6 +18,11 @@ public class TowerPlacer : MonoBehaviour
     public double minPathDist = 1;
     public double minTowerDist = 1;
     public double minBaseDist = 1;
+    private Button Tower1Select;
+    private Button Tower2Select;
+    private Button[] SelectButtons;
+    public GameObject TowerSelectBar;
+    private int selectedTowerIndex;
 
     private Camera cam;
 
@@ -21,6 +30,14 @@ public class TowerPlacer : MonoBehaviour
     void Start()
     {
         cam = Camera.main;
+        SelectButtons = TowerSelectBar.GetComponentsInChildren<Button>(true);
+        Tower1Select = SelectButtons[0];
+        Tower2Select = SelectButtons[1];
+
+        Tower1Select.onClick.AddListener(() => SelectTower(1));
+        Tower2Select.onClick.AddListener(() => SelectTower(2));
+
+        SelectTower(1);
     }
 
     // Update is called once per frame
@@ -31,6 +48,12 @@ public class TowerPlacer : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
+            if (IsPointerOverButton())
+            {
+                Debug.Log("Tried to place tower on button");
+                return;
+            }
+
             PlaceTower();
         }
     }
@@ -54,13 +77,16 @@ public class TowerPlacer : MonoBehaviour
             GameController.Instance.ShowMessage("Can't build on the base");
             return;
         }
-        if (!GameController.Instance.Purchase(tower.cost))
+
+        TowerController selectedTower = towerPrefabs[selectedTowerIndex];
+
+        if (!GameController.Instance.Purchase(selectedTower.cost))
         {
             GameController.Instance.ShowMessage($"Not enough gold (need {tower.cost})");
             return;
         }
 
-        Instantiate(tower, point, Quaternion.identity);
+        Instantiate(selectedTower, point, Quaternion.identity);
     }
 
     private bool IsTooCloseToPath(Vector3 point)
@@ -98,5 +124,39 @@ public class TowerPlacer : MonoBehaviour
         Vector2 base2D = new Vector2(basePos.x, basePos.z);
 
         return Vector2.Distance(point2D, base2D) < minBaseDist;
+    }
+
+    private void SelectTower(int towerNumber)
+    {
+        SelectButtons[selectedTowerIndex].image.color = Color.white;
+        selectedTowerIndex = towerNumber -1;
+        SelectButtons[selectedTowerIndex].image.color = Color.gray;
+        
+    }
+
+    // Gotta be a simpler way to do this, Look into IsPointerOverGameObject
+    private bool IsPointerOverButton()
+    {
+        if (EventSystem.current == null)
+        {
+            return false;
+        }
+
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = Input.mousePosition;
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+
+        foreach (RaycastResult result in results)
+        {
+            Button button = result.gameObject.GetComponentInParent<Button>();
+
+            if (button != null && button.interactable)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
