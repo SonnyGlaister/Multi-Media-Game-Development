@@ -137,7 +137,7 @@ public class SkillTree : MonoBehaviour
 
     void SetButtonState(Button perk, Color baseColor, bool isPurchased, int price, bool aboveThreshold, int version, int tower ,int boughtNum, string name)
     {
-        perk.GetComponentInChildren<TextMeshProUGUI>().text = (name + "(" + price + ")");
+        perk.GetComponentInChildren<TextMeshProUGUI>().text = name + "(" + price + ")";
         if (aboveThreshold){
             perk.image.color = Color.black;
             perk.GetComponentInChildren<TextMeshProUGUI>().text = "Disabled";

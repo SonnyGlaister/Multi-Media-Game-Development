@@ -29,8 +29,13 @@ public class GameController : MonoBehaviour
     public int redDamageHid { get; set; }
     public int yellowDamage { get; private set; }
     public int yellowDamageHid { get; set; }
-
     public int currentWave { get; private set; }
+
+    private Button MainMenuButton;
+    private Button RestartButton;
+    public GameObject GameOverButtons;
+
+
 
     private float messageTimer;
 
@@ -56,8 +61,15 @@ public class GameController : MonoBehaviour
         currentWave = 0;
 
         if (messageText != null) messageText.text = "";
+
+        MainMenuButton = GameOverButtons.GetComponentsInChildren<Button>(true)[0];
+        RestartButton = GameOverButtons.GetComponentsInChildren<Button>(true)[1];
         
         startButton.onClick.AddListener(StartGame);
+        MainMenuButton.onClick.AddListener(GoToMainMenu);
+        RestartButton.onClick.AddListener(RestartLevel);
+
+        GameOverButtons.SetActive(false);
     }
 
     // Update is called once per frame
@@ -67,13 +79,11 @@ public class GameController : MonoBehaviour
 
         if (IsGameOver)
         {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                Time.timeScale = 1f;
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-                ResetPerks();
-            }
+            GameOverButtons.SetActive(true);
             return;
+        } else
+        {
+            GameOverButtons.SetActive(false);
         }
 
         if (! HasWaveStarted)
@@ -194,10 +204,10 @@ public class GameController : MonoBehaviour
         {
             if (won)
             {
-                messageText.text = "YOU WIN!\nPress R to restart";
+                messageText.text = "YOU WIN!";
             } else
             {
-                messageText.text = "BASE DESTROYED\nPress R to restart";
+                messageText.text = "BASE DESTROYED";
             }
         }
         messageTimer = 0;
@@ -228,5 +238,17 @@ public class GameController : MonoBehaviour
         TowerController.yellowPerkPurchased = false;
         TowerController.redPerkPurchased1 = false;
         TowerController.yellowPerkPurchased1 = false;
+    }
+
+    private void RestartLevel()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        ResetPerks();
+    }
+
+    private void GoToMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
     }
 }
