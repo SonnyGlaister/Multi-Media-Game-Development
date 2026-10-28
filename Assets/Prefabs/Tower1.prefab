@@ -124,4 +124,5 @@ MonoBehaviour:
   damage: 1
   projectile: {fileID: 5388343719768564873, guid: 9287526bc28e34c499081047577accf7, type: 3}
   projectileSpeed: 20
-  cost: 5
+  startCost: 5
+  placed: 0

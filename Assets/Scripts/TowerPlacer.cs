@@ -5,6 +5,8 @@ using Cinemachine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
+using UnityEditor;
+using Unity.VisualScripting;
 
 public class TowerPlacer : MonoBehaviour
 {
@@ -29,6 +31,7 @@ public class TowerPlacer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        setupTowerCosts();
         cam = Camera.main;
         SelectButtons = TowerSelectBar.GetComponentsInChildren<Button>(true);
         Tower1Select = SelectButtons[0];
@@ -50,7 +53,6 @@ public class TowerPlacer : MonoBehaviour
         {
             if (IsPointerOverButton())
             {
-                Debug.Log("Tried to place tower on button");
                 return;
             }
 
@@ -80,13 +82,15 @@ public class TowerPlacer : MonoBehaviour
 
         TowerController selectedTower = towerPrefabs[selectedTowerIndex];
 
-        if (!GameController.Instance.Purchase(selectedTower.cost))
+        if (!GameController.Instance.Purchase(selectedTower.currentCost))
         {
-            GameController.Instance.ShowMessage($"Not enough gold (need {tower.cost})");
+            GameController.Instance.ShowMessage($"Not enough gold (need {selectedTower.currentCost})");
             return;
         }
 
         Instantiate(selectedTower, point, Quaternion.identity);
+        selectedTower.updateCost(); //Update cost after new placement
+        
     }
 
     private bool IsTooCloseToPath(Vector3 point)
@@ -158,5 +162,14 @@ public class TowerPlacer : MonoBehaviour
             }
         }
         return false;
+    }
+
+    // Reset tower costs and placement tracker for start of game.
+    private void setupTowerCosts()
+    {
+        for (int i = 0; i < towerPrefabs.Length; i++)
+        {
+            towerPrefabs[i].Reset();
+        }
     }
 }
