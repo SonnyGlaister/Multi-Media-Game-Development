@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
+using UnityEngine.UI;
 
 public class EnemyController : MonoBehaviour
 {
@@ -10,14 +11,16 @@ public class EnemyController : MonoBehaviour
     public int damageToBase = 1;
 
     public string type;
-
     private int health;
-    
     private CinemachinePath path;
     private CinemachineDollyCart cart;
+    public Image RemainingHealth;
 
     public float DistanceTravelled => cart != null ? cart.m_Position : 0f;
     public bool IsAlive { get; private set; } = true;
+
+    private GameObject HealthBar;
+    private float maxHealthBarWidth;
 
     // Start is called before the first frame update
     void Start()
@@ -30,6 +33,7 @@ public class EnemyController : MonoBehaviour
         {
             cart.m_Path = path;
         }
+
     }
 
     // Update is called once per frame
@@ -41,6 +45,7 @@ public class EnemyController : MonoBehaviour
         {
             ReachEnd();
         }
+        
     }
 
     public void TakeDamage(int amount)
@@ -53,6 +58,11 @@ public class EnemyController : MonoBehaviour
             IsAlive = false;
             GameController.Instance.EnemyKilled(reward);
             Destroy(gameObject);
+        }
+
+        if (RemainingHealth != null && maxHealth > 0)
+        {
+            RemainingHealth.fillAmount = Mathf.Clamp01((float)health / maxHealth);
         }
     }
 
