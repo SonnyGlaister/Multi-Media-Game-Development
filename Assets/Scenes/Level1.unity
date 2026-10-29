@@ -4635,7 +4635,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ec563d36eb294e4b9118e7a550080f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startingCurrency: 1000
+  startingCurrency: 5
   startingBaseHealth: 10
   totalWaves: 5
   spawner: {fileID: 864900002}
