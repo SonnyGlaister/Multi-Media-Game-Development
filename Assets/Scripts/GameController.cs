@@ -13,9 +13,13 @@ public class GameController : MonoBehaviour
     public int startingBaseHealth = 3;
     public int totalWaves = 2;
 
-    public EnemySpawner spawner;
+    public TextMeshProUGUI countdownText;
+    public TextMeshProUGUI waveText;
+    public TextMeshProUGUI damageText;
     public TextMeshProUGUI hudText;
     public TextMeshProUGUI messageText;
+
+    public EnemySpawner spawner;
     public Button startButton;
     public GameObject skillTree;
 
@@ -75,6 +79,9 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        UpdateCountdown();
+        UpdateWave();
+        UpdateDamage();
         UpdateHud();
 
         if (IsGameOver)
@@ -213,15 +220,39 @@ public class GameController : MonoBehaviour
         messageTimer = 0;
     }
 
+    // Updates enemy countdown text
+    private void UpdateCountdown()
+    {
+        if (countdownText == null) return;
+        string countdown = "";
+        if (spawner != null && spawner.SetupTimeRemaining > 0)
+        {
+            countdown += $"\nEnemies in: {Mathf.CeilToInt(spawner.SetupTimeRemaining)}";
+        }
+        countdownText.text = countdown;
+    }
+
+    // Updates wave text
+    private void UpdateWave()
+    {
+        if (waveText == null) return;
+        string wave = $"Wave: {currentWave + 1}";
+        waveText.text = wave;
+    }
+
+    // Updates damage text
+    private void UpdateDamage()
+    {
+        if (damageText == null) return;
+        string damage = $"Red: {redDamage}\nYellow: {yellowDamage}";
+        damageText.text = damage;
+    }
+
     // Updates hud text
     private void UpdateHud()
     {
         if (hudText == null) return;
-        string hud = $"Gold: {Currency}\nBase HP: {BaseHealth}\nRed Damage: {redDamage}\nYellow Damage: {yellowDamage}\nWave Number: {currentWave+1}";
-        if (spawner != null && spawner.SetupTimeRemaining > 0)
-        {
-            hud += $"\nEnemies in: {Mathf.CeilToInt(spawner.SetupTimeRemaining)}";
-        }
+        string hud = $"Gold: {Currency}\nBase HP: {BaseHealth}";
         hudText.text = hud;
 
         if (HasGameStarted)

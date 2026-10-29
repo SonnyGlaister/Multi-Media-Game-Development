@@ -3,90 +3,156 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
 using UnityEngine.UI;
-using TMPro;
-using UnityEngine.EventSystems;
 
 public class TowerPlacer : MonoBehaviour
 {
-    public TowerController tower;
+    public static TowerPlacer Instance { get; private set; }
+
     public TowerController[] towerPrefabs;
     public GameObject baseObject;
     public CinemachinePath path;
     public Collider ground;
-    // public GameController gameController;
 
     public double minPathDist = 1;
     public double minTowerDist = 1;
     public double minBaseDist = 1;
-    private Button Tower1Select;
-    private Button Tower2Select;
-    private Button[] SelectButtons;
     public GameObject TowerSelectBar;
-    private int selectedTowerIndex;
+
+    public Color validColor = Color.green;
+    public Color invalidColor = Color.red;
 
     private Camera cam;
+    private TowerController draggedTower;
+    // Ghost is a tower copy that isn't a real tower (can't shoot)
+    private GameObject ghostTower;
+    private Renderer[] ghostRenderers;
 
     // Start is called before the first frame update
     void Start()
     {
+        Instance = this;
+
         cam = Camera.main;
-        SelectButtons = TowerSelectBar.GetComponentsInChildren<Button>(true);
-        Tower1Select = SelectButtons[0];
-        Tower2Select = SelectButtons[1];
-
-        Tower1Select.onClick.AddListener(() => SelectTower(1));
-        Tower2Select.onClick.AddListener(() => SelectTower(2));
-
-        SelectTower(1);
+        Button[] selectButtons = TowerSelectBar.GetComponentsInChildren<Button>(true);
+        for (int i = 0; i < selectButtons.Length; i++)
+        {
+            TowerDragButton dragButton = selectButtons[i].gameObject.AddComponent<TowerDragButton>();
+            dragButton.Setup(towerPrefabs[i]);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        
-        if (GameController.Instance.IsGameOver || !GameController.Instance.HasGameStarted || SkillTreeMenu.Instance.isOpen) return;
-
-        if (Input.GetMouseButtonDown(0))
+        // Cancel in-progress drag if the game ends or the skill tree opens
+        if (ghostTower != null && !CanDrag())
         {
-            if (IsPointerOverButton())
-            {
-                Debug.Log("Tried to place tower on button");
-                return;
-            }
-
-            PlaceTower();
+            CancelDrag();
         }
     }
 
-    public void PlaceTower()
+    public bool CanDrag()
     {
-        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        ground.Raycast(ray, out hit, 1000f);
-        Vector3 point = hit.point;
+        return !GameController.Instance.IsGameOver && GameController.Instance.HasGameStarted && !SkillTreeMenu.Instance.isOpen;
+    }
 
-        if (IsTooCloseToPath(point)) {
-            GameController.Instance.ShowMessage("Can't build on the path");
-            return;
-        }
-        if (IsTooCloseToTower(point)) {
-            GameController.Instance.ShowMessage("Can't build on another tower");
-            return;
-        }
-        if (IsTooCloseToBase(point)) {
-            GameController.Instance.ShowMessage("Can't build on the base");
-            return;
-        }
+    // Called when a tower drag starts
+    public void BeginDrag(TowerController prefab)
+    {
+        draggedTower = prefab;
 
-        TowerController selectedTower = towerPrefabs[selectedTowerIndex];
-
-        if (!GameController.Instance.Purchase(selectedTower.cost))
+        ghostTower = Instantiate(prefab.gameObject);
+        ghostTower.tag = "Untagged";
+        ghostTower.GetComponent<TowerController>().enabled = false;
+        foreach (Collider c in ghostTower.GetComponentsInChildren<Collider>())
         {
-            GameController.Instance.ShowMessage($"Not enough gold (need {tower.cost})");
+            c.enabled = false;
+        }
+        ghostRenderers = ghostTower.GetComponentsInChildren<Renderer>();
+        ghostTower.SetActive(false);
+    }
+
+    public void Drag(Vector2 screenPosition)
+    {
+        if (ghostTower == null) return;
+
+        if (!TryGetGroundPoint(screenPosition, out Vector3 point))
+        {
+            ghostTower.SetActive(false);
             return;
         }
 
-        Instantiate(selectedTower, point, Quaternion.identity);
+        ghostTower.SetActive(true);
+        ghostTower.transform.position = point;
+
+        bool isValid = GetPlacementError(point) == null && GameController.Instance.CanAfford(draggedTower.cost);
+        Color tint = isValid ? validColor : invalidColor;
+        foreach (Renderer r in ghostRenderers)
+        {
+            r.material.color = tint;
+        }
+
+    }
+
+    // Called when a drag ends (successful or cancelled)
+    public void EndDrag(Vector2 screenPosition, bool droppedOnButton)
+    {
+        if (ghostTower == null) return;
+
+        TowerController prefab = draggedTower;
+        CancelDrag();
+
+        if (droppedOnButton) return;
+        if (!TryGetGroundPoint(screenPosition, out Vector3 point)) return;
+
+        TryPlaceTower(prefab, point);
+    }
+
+    public void CancelDrag()
+    {
+        if (ghostTower != null) Destroy(ghostTower);
+        ghostTower = null;
+        ghostRenderers = null;
+        draggedTower = null;
+    }
+
+    private void TryPlaceTower(TowerController prefab, Vector3 point)
+    {
+        string error = GetPlacementError(point);
+        if (error != null)
+        {
+            GameController.Instance.ShowMessage(error);
+            return;
+        }
+
+        if (!GameController.Instance.Purchase(prefab.cost))
+        {
+            GameController.Instance.ShowMessage($"Not enough gold");
+            return;
+        }
+
+        Instantiate(prefab, point, Quaternion.identity);
+    }
+
+    private bool TryGetGroundPoint(Vector2 screenPosition, out Vector3 point)
+    {
+        Ray ray = cam.ScreenPointToRay(screenPosition);
+        if (ground.Raycast(ray, out RaycastHit hit, 1000f))
+        {
+            point = hit.point;
+            return true;
+        }
+        point = Vector3.zero;
+        return false;
+    }
+
+    // Null if the tower spot is valid, otherwise shows message
+    private string GetPlacementError(Vector3 point)
+    {
+        if (IsTooCloseToPath(point)) return "Can't build on the path";
+        if (IsTooCloseToTower(point)) return "Can't build on another tower";
+        if (IsTooCloseToBase(point)) return "Can't build on the base";
+        return null;
     }
 
     private bool IsTooCloseToPath(Vector3 point)
@@ -124,39 +190,5 @@ public class TowerPlacer : MonoBehaviour
         Vector2 base2D = new Vector2(basePos.x, basePos.z);
 
         return Vector2.Distance(point2D, base2D) < minBaseDist;
-    }
-
-    private void SelectTower(int towerNumber)
-    {
-        SelectButtons[selectedTowerIndex].image.color = Color.white;
-        selectedTowerIndex = towerNumber -1;
-        SelectButtons[selectedTowerIndex].image.color = Color.gray;
-        
-    }
-
-    // Gotta be a simpler way to do this, Look into IsPointerOverGameObject
-    private bool IsPointerOverButton()
-    {
-        if (EventSystem.current == null)
-        {
-            return false;
-        }
-
-        PointerEventData eventData = new PointerEventData(EventSystem.current);
-        eventData.position = Input.mousePosition;
-
-        List<RaycastResult> results = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, results);
-
-        foreach (RaycastResult result in results)
-        {
-            Button button = result.gameObject.GetComponentInParent<Button>();
-
-            if (button != null && button.interactable)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 }
