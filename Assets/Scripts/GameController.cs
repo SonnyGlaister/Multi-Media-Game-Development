@@ -22,7 +22,7 @@ public class GameController : MonoBehaviour
     public int Currency { get; set; }
     public int BaseHealth { get; private set; }
     public bool IsGameOver { get; private set; }
-    public bool HasGameStarted { get; private set; }
+    public bool HasGameStarted { get; private set; } // Used in other scripts for disabling actions before start.
 
     public bool HasWaveStarted { get; private set; }
     public int redDamage { get; private set; }
@@ -45,6 +45,7 @@ public class GameController : MonoBehaviour
     {
         Instance = this;
     }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -53,7 +54,7 @@ public class GameController : MonoBehaviour
 
         HasGameStarted = false;
         IsGameOver = false;
-        HasWaveStarted = true;
+        HasWaveStarted = false;
 
         redDamage = 0;
         yellowDamage = 0;
@@ -81,9 +82,6 @@ public class GameController : MonoBehaviour
         {
             GameOverButtons.SetActive(true);
             return;
-        } else
-        {
-            GameOverButtons.SetActive(false);
         }
 
         if (! HasWaveStarted)
@@ -138,6 +136,7 @@ public class GameController : MonoBehaviour
         return true;
     }
 
+
     public bool CanAfford(int cost)
     {
         if (Currency < cost)
@@ -181,6 +180,7 @@ public class GameController : MonoBehaviour
     private void StartGame()
     {
         HasGameStarted = true;
+        startButton.gameObject.SetActive(false);
     }
 
     //Make spawner not ready, call to reset the spawner.
@@ -223,12 +223,6 @@ public class GameController : MonoBehaviour
             hud += $"\nEnemies in: {Mathf.CeilToInt(spawner.SetupTimeRemaining)}";
         }
         hudText.text = hud;
-
-        if (HasGameStarted)
-        {
-            startButton.gameObject.SetActive(false);
-
-        }
     }
 
 
