@@ -10,7 +10,12 @@ public class TowerController : MonoBehaviour
     public Rigidbody projectile;
     public float projectileSpeed = 20;
 
-    public int cost = 5;
+    public int startCost = 5;
+
+    public int currentCost { get; private set; }
+    private float TOWERCOSTMULTIPLIER = 2.0f; //Multiplier to increase tower cost by
+
+    private int placed;
 
     private float timer;
     private EnemyController currentTarget;
@@ -18,6 +23,8 @@ public class TowerController : MonoBehaviour
     public static bool yellowPerkPurchased = false;
     public static bool redPerkPurchased1 = false;
     public static bool yellowPerkPurchased1 = false;
+
+    
 
     void Update()
     {
@@ -39,13 +46,10 @@ public class TowerController : MonoBehaviour
 
         if (redPerkPurchased & !redPerkPurchased1)
         {
-            cooldown = 0.5f;
+            cooldown = 0.9f;
         } else if (redPerkPurchased1)
         {
-            cooldown = 0.25f;
-        } else
-        {
-            cooldown = 1f;
+            cooldown = 0.75f;
         }
 
         if (yellowPerkPurchased & !yellowPerkPurchased1)
@@ -54,10 +58,29 @@ public class TowerController : MonoBehaviour
         } else if (yellowPerkPurchased1)
         {
             range = 8;
-        }else
-        {
-           
         }
+    }
+
+    // Reset costs and placed totals.
+    public void Reset()
+    {
+        placed = 0;
+        currentCost = startCost;
+    }
+    // Update the cost based on total placed.
+    public void updateCost()
+    {
+        placed += 1;
+        // First 2 towers cost the same
+        if (placed < 2)
+        {
+            currentCost = startCost;
+        }
+        else
+        {
+            currentCost = (int)(currentCost * TOWERCOSTMULTIPLIER);
+        }
+
     }
 
     // Picks the enemy in range that is furthest along the path
