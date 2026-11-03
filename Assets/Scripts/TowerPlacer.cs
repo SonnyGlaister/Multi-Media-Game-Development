@@ -85,7 +85,7 @@ public class TowerPlacer : MonoBehaviour
         ghostTower.SetActive(true);
         ghostTower.transform.position = point;
 
-        bool isValid = GetPlacementError(point) == null && GameController.Instance.CanAfford(draggedTower.cost);
+        bool isValid = GetPlacementError(point) == null && GameController.Instance.CanAfford(draggedTower.currentCost);
         Color tint = isValid ? validColor : invalidColor;
         foreach (Renderer r in ghostRenderers)
         {
@@ -125,7 +125,7 @@ public class TowerPlacer : MonoBehaviour
             return;
         }
 
-        if (!GameController.Instance.Purchase(prefab.cost))
+        if (!GameController.Instance.Purchase(prefab.currentCost))
         {
             GameController.Instance.ShowMessage($"Not enough gold");
             return;

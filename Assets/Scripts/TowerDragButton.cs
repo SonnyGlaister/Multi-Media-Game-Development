@@ -22,7 +22,7 @@ public class TowerDragButton : MonoBehaviour, IBeginDragHandler, IEndDragHandler
     {
         if (towerPrefab == null) return;
 
-        bool canAffordTower = GameController.Instance.CanAfford(towerPrefab.cost);
+        bool canAffordTower = GameController.Instance.CanAfford(towerPrefab.currentCost);
         icon.color = canAffordTower ? Color.white : Color.gray;
     }
 
