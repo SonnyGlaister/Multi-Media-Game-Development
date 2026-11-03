@@ -120,8 +120,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e98c2866040bda247b121470c1c5f23f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  range: 5
-  damage: 1
+  range: 3
+  damage: 3
   projectile: {fileID: 5388343719768564873, guid: 9287526bc28e34c499081047577accf7, type: 3}
   projectileSpeed: 20
-  cost: 5
+  startCost: 15
