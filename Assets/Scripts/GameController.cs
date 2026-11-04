@@ -188,6 +188,7 @@ public class GameController : MonoBehaviour
     {
         HasGameStarted = true;
         startButton.gameObject.SetActive(false);
+
     }
 
     //Make spawner not ready, call to reset the spawner.
