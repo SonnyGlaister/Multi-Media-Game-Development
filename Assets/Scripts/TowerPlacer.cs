@@ -36,6 +36,7 @@ public class TowerPlacer : MonoBehaviour
         Button[] selectButtons = TowerSelectBar.GetComponentsInChildren<Button>(true);
         for (int i = 0; i < selectButtons.Length; i++)
         {
+            towerPrefabs[i].ResetCost();
             TowerDragButton dragButton = selectButtons[i].gameObject.AddComponent<TowerDragButton>();
             dragButton.Setup(towerPrefabs[i]);
         }
@@ -132,6 +133,7 @@ public class TowerPlacer : MonoBehaviour
         }
 
         Instantiate(prefab, point, Quaternion.identity);
+        prefab.updateCost();
     }
 
     private bool TryGetGroundPoint(Vector2 screenPosition, out Vector3 point)

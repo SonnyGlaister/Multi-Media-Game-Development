@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class TowerController : MonoBehaviour
 {
+    public string displayName = "Tower";
+    public Sprite icon;
+
     public static float cooldown = 1f;
     public float range = 8;
     public int damage = 1;
@@ -62,11 +65,12 @@ public class TowerController : MonoBehaviour
     }
 
     // Reset costs and placed totals.
-    public void Reset()
+    public void ResetCost()
     {
         placed = 0;
         currentCost = startCost;
     }
+
     // Update the cost based on total placed.
     public void updateCost()
     {

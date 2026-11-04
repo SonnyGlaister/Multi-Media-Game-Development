@@ -7,8 +7,12 @@ using TMPro;
 
 public class TowerDragButton : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler
 {
+    public Color affordableColor = Color.white;
+    public Color unaffordableColor = Color.red;
+
     private TowerController towerPrefab;
     private Image icon;
+    private TextMeshProUGUI costLabel;
     private bool isDragging;
 
     // Start is called before the first frame update
@@ -22,14 +26,25 @@ public class TowerDragButton : MonoBehaviour, IBeginDragHandler, IEndDragHandler
     {
         if (towerPrefab == null) return;
 
-        bool canAffordTower = GameController.Instance.CanAfford(towerPrefab.currentCost);
-        icon.color = canAffordTower ? Color.white : Color.gray;
+        bool canAfford = GameController.Instance.CanAfford(towerPrefab.currentCost);
+        icon.color = canAfford ? affordableColor : unaffordableColor;
+        if (costLabel != null)
+        {
+            costLabel.text = towerPrefab.currentCost.ToString();
+            costLabel.color = canAfford ? Color.black : Color.red;
+        }
     }
 
     public void Setup(TowerController prefab)
     {
         towerPrefab = prefab;
-        icon = GetComponent<Image>();
+
+        Transform iconChild = transform.Find("Icon");
+        icon = iconChild != null ? iconChild.GetComponent<Image>() : GetComponent<Image>();
+        if (prefab.icon != null) icon.sprite = prefab.icon;
+
+        Transform costChild = transform.Find("CostLabel");
+        if (costChild != null) costLabel = costChild.GetComponent<TextMeshProUGUI>();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
