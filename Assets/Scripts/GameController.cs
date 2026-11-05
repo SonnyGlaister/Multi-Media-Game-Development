@@ -4,10 +4,21 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
+using System.Linq;
 
 public class GameController : MonoBehaviour
 {
     public static GameController Instance { get; private set; }
+
+    public FactionDefinition[] Factions { get; private set; }
+
+    private readonly Dictionary<FactionDefinition, int> totalHits = new();
+    private readonly Dictionary<FactionDefinition, int> pressure = new();
+
+    public int GetTotalHits(FactionDefinition f) => f != null && totalHits.TryGetValue(f, out int v) ? v : 0;
+    public int GetPressure(FactionDefinition f) => f != null && pressure.TryGetValue(f, out int v) ? v : 0;
+    public bool IsLockedOut(FactionDefinition f) => f != null && GetPressure(f) >= f.lockoutThreshold;
+    public void ReducePressure(FactionDefinition f, int amount) => pressure[f] = Mathf.Max(0, GetPressure(f) - amount);
 
     public int startingCurrency = 5;
     public int startingBaseHealth = 3;
@@ -29,10 +40,6 @@ public class GameController : MonoBehaviour
     public bool HasGameStarted { get; private set; } // Used in other scripts for disabling actions before start.
 
     public bool HasWaveStarted { get; private set; }
-    public int redDamage { get; private set; }
-    public int redDamageHid { get; set; }
-    public int yellowDamage { get; private set; }
-    public int yellowDamageHid { get; set; }
     public int currentWave { get; private set; }
 
     private Button MainMenuButton;
@@ -48,6 +55,8 @@ public class GameController : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+        Factions = spawner.enemyTypes.Where(t => t != null && t.faction != null).Select(t => t.faction).Distinct().ToArray();
     }
 
     // Start is called before the first frame update
@@ -59,9 +68,6 @@ public class GameController : MonoBehaviour
         HasGameStarted = false;
         IsGameOver = false;
         HasWaveStarted = false;
-
-        redDamage = 0;
-        yellowDamage = 0;
 
         currentWave = 0;
 
@@ -113,20 +119,16 @@ public class GameController : MonoBehaviour
     }
 
     // Updates base health on enemy hit; ends game if base destroyed
-    public void EnemyReachedBase(int damage, string type)
+    public void EnemyReachedBase(EnemyDefinition definition)
     {
         if (IsGameOver) return;
-        BaseHealth = Mathf.Max(BaseHealth - damage, 0);
+        BaseHealth = Mathf.Max(BaseHealth - definition.damageToBase, 0);
 
-        if (type == "red")
+        FactionDefinition f = definition.faction;
+        if (f != null)
         {
-            redDamage ++;
-            redDamageHid++;
-        }
-        if (type == "yellow")
-        {
-            yellowDamage ++;
-            yellowDamageHid++;
+            totalHits[f] = GetTotalHits(f) + 1;
+            pressure[f] = GetPressure(f) + definition.pressurePerHit;
         }
 
         if (BaseHealth <= 0)
@@ -245,8 +247,12 @@ public class GameController : MonoBehaviour
     private void UpdateDamage()
     {
         if (damageText == null) return;
-        string damage = $"Red: {redDamage}\nYellow: {yellowDamage}";
-        damageText.text = damage;
+        string text = "";
+        foreach (FactionDefinition f in Factions)
+        {
+            text += $"{f.displayName}: {GetTotalHits(f)}\n";
+        }
+        damageText.text = text;
     }
 
     // Updates hud text

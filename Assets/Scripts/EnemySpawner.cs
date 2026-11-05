@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 
 public class EnemySpawner : MonoBehaviour
 {
-    public GameObject[] enemyPrefabs; //Insert multiple enemy types
+    public EnemyController enemyPrefab;
+    public EnemyDefinition[] enemyTypes;
+
     public float setupTime = 3; //Time between waves
     public int[][] enemySpawnNumbers =
     {
@@ -81,7 +81,9 @@ public class EnemySpawner : MonoBehaviour
                         break;
                     }
                 }
-                Instantiate(enemyPrefabs[select], transform.position, Quaternion.identity);
+                EnemyController enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+                enemy.Init(enemyTypes[select]);
+
                 spawnedEnemyTotal++;
                 randomisedEnemySpawnNumbers[waveNum][select] -= 1;
                 timer = 0;

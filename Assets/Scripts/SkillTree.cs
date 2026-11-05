@@ -21,12 +21,13 @@ public class SkillTree : MonoBehaviour
     public int redPrice;
     public int yellowPrice;
 
-    public int redDamageThreshold = 1;
-    public int yellowDamageThreshold = 1;
     public static int Rbought = 0;
     public static int Ybought = 0;
     public bool isAboveYellowDamageThreshold;
     public bool isAboveRedDamageThreshold;
+
+    public FactionDefinition redFaction;
+    public FactionDefinition yellowFaction;
 
     // Start is called before the first frame update
     void Start()
@@ -45,31 +46,32 @@ public class SkillTree : MonoBehaviour
     void Update()
     {
 
-        isAboveRedDamageThreshold = IsAboveThreshold(GameController.Instance.redDamageHid, redDamageThreshold);
+        isAboveRedDamageThreshold = GameController.Instance.IsLockedOut(redFaction);
         if (isAboveRedDamageThreshold)
         {
             if (TowerController.redPerkPurchased1)
             {
                 TowerController.redPerkPurchased1 = false;
-                GameController.Instance.redDamageHid= GameController.Instance.redDamageHid - redDamageThreshold;
-            } else 
-            { 
+                GameController.Instance.ReducePressure(redFaction, redFaction.lockoutThreshold);
+            }
+            else
+            {
                 TowerController.redPerkPurchased = false;
             }
         }
-        isAboveYellowDamageThreshold = IsAboveThreshold(GameController.Instance.yellowDamageHid, yellowDamageThreshold);
+
+        isAboveYellowDamageThreshold = GameController.Instance.IsLockedOut(yellowFaction);
         if (isAboveYellowDamageThreshold)
         {
             if (TowerController.yellowPerkPurchased1)
             {
                 TowerController.yellowPerkPurchased1 = false;
-                GameController.Instance.yellowDamageHid = GameController.Instance.yellowDamageHid - yellowDamageThreshold;
+                GameController.Instance.ReducePressure(yellowFaction, yellowFaction.lockoutThreshold);
             }
             else
             {
                 TowerController.yellowPerkPurchased = false;
             }
-
         }
         SetButtonState(redPerk, Color.red, TowerController.redPerkPurchased, redPrice, isAboveRedDamageThreshold,1,0,Rbought, "FireRate+ ");
         SetButtonState(yellowPerk, Color.yellow, TowerController.yellowPerkPurchased, yellowPrice, isAboveYellowDamageThreshold,1,0, Ybought, "Range+ ");
@@ -124,15 +126,6 @@ public class SkillTree : MonoBehaviour
         TowerController.yellowPerkPurchased1 = true;
         GameController.Instance.Currency -= yellowPrice;
 
-    }
-
-    bool IsAboveThreshold(int damage, int threshold)
-    {
-        if (damage >= threshold)
-        {
-            return true;
-        }
-        return false;
     }
 
     void SetButtonState(Button perk, Color baseColor, bool isPurchased, int price, bool aboveThreshold, int version, int tower ,int boughtNum, string name)

@@ -281,7 +281,7 @@ GameObject:
   - component: {fileID: 5928613008999383260}
   - component: {fileID: 8619738070640230305}
   m_Layer: 0
-  m_Name: EnemyRed
+  m_Name: Enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -389,7 +389,7 @@ MonoBehaviour:
   m_Path: {fileID: 0}
   m_UpdateMethod: 0
   m_PositionUnits: 1
-  m_Speed: 2
+  m_Speed: 0
   m_Position: 0
 --- !u!114 &8619738070640230305
 MonoBehaviour:
@@ -403,8 +403,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d38cb1fea1483546b319a97c2366d5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 2
-  reward: 1
-  damageToBase: 1
-  type: red
   RemainingHealth: {fileID: 1555923930918671487}
+  bodyRenderer: {fileID: 3685849952174021465}
