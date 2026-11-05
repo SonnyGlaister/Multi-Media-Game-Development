@@ -7,9 +7,15 @@ public class TowerController : MonoBehaviour
     public string displayName = "Tower";
     public Sprite icon;
 
-    public static float cooldown = 1f;
     public float range = 8;
     public int damage = 1;
+    public float fireCooldown = 1f;
+
+    // Real stats after perks
+    float Cooldown => fireCooldown * PerkManager.Instance.CooldownMultiplier;
+    float Range => range * PerkManager.Instance.RangeMultiplier;
+    int Damage => damage + PerkManager.Instance.DamageBonus;
+
     public Rigidbody projectile;
     public float projectileSpeed = 20;
 
@@ -22,12 +28,6 @@ public class TowerController : MonoBehaviour
 
     private float timer;
     private EnemyController currentTarget;
-    public static bool redPerkPurchased = false;
-    public static bool yellowPerkPurchased = false;
-    public static bool redPerkPurchased1 = false;
-    public static bool yellowPerkPurchased1 = false;
-
-    
 
     void Update()
     {
@@ -40,27 +40,11 @@ public class TowerController : MonoBehaviour
             Debug.DrawLine(transform.position, currentTarget.transform.position, Color.red);
 
             // We should add debug to show radius of towers
-            if (timer >= cooldown)
+            if (timer >= Cooldown)
             {
                 Shoot(currentTarget);
                 timer = 0f;
             }
-        }
-
-        if (redPerkPurchased & !redPerkPurchased1)
-        {
-            cooldown = 0.9f;
-        } else if (redPerkPurchased1)
-        {
-            cooldown = 0.75f;
-        }
-
-        if (yellowPerkPurchased & !yellowPerkPurchased1)
-        {
-            range = 6;
-        } else if (yellowPerkPurchased1)
-        {
-            range = 8;
         }
     }
 
@@ -102,7 +86,7 @@ public class TowerController : MonoBehaviour
             if (enemy == null) continue;
             if (!enemy.IsAlive) continue;
 
-            if (Vector3.Distance(transform.position, go.transform.position) > range) continue;
+            if (Vector3.Distance(transform.position, go.transform.position) > Range) continue;
 
             if (enemy.DistanceTravelled > bestProgress)
             {
@@ -116,6 +100,6 @@ public class TowerController : MonoBehaviour
     void Shoot(EnemyController target)
     {
         Rigidbody instance = Instantiate(projectile, transform.position, Quaternion.identity);
-        instance.GetComponent<ProjectileController>().Launch(target.transform, damage, projectileSpeed);
+        instance.GetComponent<ProjectileController>().Launch(target.transform, Damage, projectileSpeed);
     }
 }

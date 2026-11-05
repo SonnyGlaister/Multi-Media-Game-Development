@@ -32,7 +32,6 @@ public class GameController : MonoBehaviour
 
     public EnemySpawner spawner;
     public Button startButton;
-    public GameObject skillTree;
 
     public int Currency { get; set; }
     public int BaseHealth { get; private set; }
@@ -263,20 +262,10 @@ public class GameController : MonoBehaviour
         hudText.text = hud;
     }
 
-
-    private void ResetPerks()
-    {
-        TowerController.redPerkPurchased = false;
-        TowerController.yellowPerkPurchased = false;
-        TowerController.redPerkPurchased1 = false;
-        TowerController.yellowPerkPurchased1 = false;
-    }
-
     private void RestartLevel()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        ResetPerks();
     }
 
     private void GoToMainMenu()

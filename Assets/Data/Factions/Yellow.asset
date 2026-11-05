@@ -13,5 +13,8 @@ MonoBehaviour:
   m_Name: Yellow
   m_EditorClassIdentifier: 
   displayName: Yellow
-  color: {r: 1, g: 0.9990684, b: 0, a: 0}
+  color: {r: 1, g: 0.9990684, b: 0, a: 1}
   lockoutThreshold: 5
+  perks:
+  - {fileID: 11400000, guid: cd092c44827f8433b8cbd048b88289ed, type: 2}
+  - {fileID: 11400000, guid: c362d2b0340d4496b80a4e1574ab8017, type: 2}
