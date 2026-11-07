@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571363, b: 0.30692217, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2235,6 +2235,7 @@ MonoBehaviour:
   enemyTypes:
   - {fileID: 11400000, guid: 0c59c052e1b5d4d34908c00f524be831, type: 2}
   - {fileID: 11400000, guid: e7293944b545044678faaf0b037079c7, type: 2}
+  - {fileID: 11400000, guid: ee221d54f52c8a740ae206e4b6438cc0, type: 2}
   - {fileID: 11400000, guid: 72c86ac9e7222493b907e5e10394c4cf, type: 2}
   setupTime: 2
   enemySpawnCooldown: 0.5
@@ -3570,7 +3571,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -166, y: -141}
+  m_AnchoredPosition: {x: -166, y: 98}
   m_SizeDelta: {x: 470, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1774428117
@@ -3590,8 +3591,8 @@ MonoBehaviour:
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  m_ChildAlignment: 4
-  m_Spacing: 288
+  m_ChildAlignment: 1
+  m_Spacing: 64
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -3796,7 +3797,6 @@ MonoBehaviour:
   messageText: {fileID: 606282552}
   spawner: {fileID: 864900002}
   startButton: {fileID: 1647133804}
-  skillTree: {fileID: 1938247922}
   GameOverButtons: {fileID: 1287604438}
 --- !u!4 &2081817160
 Transform:

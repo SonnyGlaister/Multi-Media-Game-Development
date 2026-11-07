@@ -9,12 +9,18 @@ public class TowerController : MonoBehaviour
 
     public float range = 8;
     public int damage = 1;
+    public int piercing = 0;
     public float fireCooldown = 1f;
+    public float aoeRange = 0;
+    public float aoeDamage = 0;
 
     // Real stats after perks
     float Cooldown => fireCooldown * PerkManager.Instance.CooldownMultiplier;
     float Range => range * PerkManager.Instance.RangeMultiplier;
     int Damage => damage + PerkManager.Instance.DamageBonus;
+    int Piercing => piercing + PerkManager.Instance.PiercingBonus;
+    float AOERange => aoeRange + PerkManager.Instance.AOERangeBonus;
+    float AOEDamage => aoeDamage + PerkManager.Instance.AOEDamageMultiplier;
 
     public Rigidbody projectile;
     public float projectileSpeed = 20;
@@ -100,6 +106,6 @@ public class TowerController : MonoBehaviour
     void Shoot(EnemyController target)
     {
         Rigidbody instance = Instantiate(projectile, transform.position, Quaternion.identity);
-        instance.GetComponent<ProjectileController>().Launch(target.transform, Damage, projectileSpeed);
+        instance.GetComponent<ProjectileController>().Launch(target.transform, Damage, projectileSpeed, Piercing, AOERange, AOEDamage);
     }
 }
