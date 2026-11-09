@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Green
   m_EditorClassIdentifier: 
   displayName: Green
-  color: {r: 0, g: 1, b: 0, a: 0}
-  lockoutThreshold: 0
-  perks: []
+  color: {r: 0, g: 1, b: 0, a: 1}
+  lockoutThreshold: 1
+  perks:
+  - {fileID: 11400000, guid: 384ce01f102e1d44dbbf4705799bad4d, type: 2}
+  - {fileID: 11400000, guid: 7a31b681f55c55c4cae24a1d1d8127dd, type: 2}

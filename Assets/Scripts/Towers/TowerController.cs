@@ -81,24 +81,25 @@ public class TowerController : MonoBehaviour
     EnemyController FindTarget()
     {
         EnemyController best = null;
-        float bestProgress = -1f;
+        float bestProgress = Mathf.Infinity;
 
         foreach (GameObject go in GameObject.FindGameObjectsWithTag("Enemy"))
         {
             if (go == null) continue;
-
             EnemyController enemy = go.GetComponent<EnemyController>();
-            // if (enemy == null || !enemy.IsAlive) continue;
             if (enemy == null) continue;
             if (!enemy.IsAlive) continue;
 
             if (Vector3.Distance(transform.position, go.transform.position) > Range) continue;
 
-            if (enemy.DistanceTravelled > bestProgress)
+            float enemyDistance = enemy.GetDistanceAlongPath();
+
+            if (enemyDistance < bestProgress)
             {
-                bestProgress = enemy.DistanceTravelled;
+                bestProgress = enemyDistance;
                 best = enemy;
             }
+            // Debug.Log(bestProgress);
         }
         return best;
     }

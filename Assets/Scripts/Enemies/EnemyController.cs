@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
 using UnityEngine.UI;
+using UnityEngine.AI;
 
 public class EnemyController : MonoBehaviour
 {
@@ -12,12 +13,15 @@ public class EnemyController : MonoBehaviour
     public EnemyDefinition Definition { get; private set; }
     public FactionDefinition Faction => Definition != null ? Definition.faction : null;
 
-    public float DistanceTravelled => cart != null ? cart.m_Position : 0f;
+    // public float DistanceTravelled => cart != null ? cart.m_Position : 0f;
+    public float RemainingDistance;
     public bool IsAlive { get; private set; } = true;
 
     private int health;
-    private CinemachinePath path;
-    private CinemachineDollyCart cart;
+    // private CinemachinePath path;
+    // private CinemachineDollyCart cart;
+    private UnityEngine.AI.NavMeshAgent agent;
+    private Vector3 startPosition;
 
 
     // Called by the spawner right after Instantiate
@@ -28,8 +32,8 @@ public class EnemyController : MonoBehaviour
         health = definition.maxHealth;
         transform.localScale = Vector3.one * definition.scale;
 
-        cart = GetComponent<CinemachineDollyCart>();
-        if (cart != null) cart.m_Speed = definition.speed;
+        // cart = GetComponent<CinemachineDollyCart>();
+        // if (cart != null) cart.m_Speed = definition.speed;
 
         if (definition.modelPrefab != null)
         {
@@ -45,25 +49,48 @@ public class EnemyController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        path = GameObject.Find("LevelPath").GetComponent<CinemachinePath>();
-        cart = GetComponent<CinemachineDollyCart>();
-        if (cart != null && path != null)
-        {
-            cart.m_Path = path;
-        }
+        
 
+        // path = GameObject.Find("LevelPath").GetComponent<CinemachinePath>();
+        // cart = GetComponent<CinemachineDollyCart>();
+        // if (cart != null && path != null)
+        // {
+        //     cart.m_Path = path;
+        // }
+
+        startPosition = transform.position;
+
+    }
+
+    void Awake()
+    {
+        agent = GetComponent<NavMeshAgent>();
+        // RemainingDistance = agent.remainingDistance;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!IsAlive || cart == null || path == null) return;
+        // if (!IsAlive || cart == null || path == null) return;
+        // if (cart.m_Position >= path.PathLength)
+        // {
+        //     ReachEnd();
+        // }
 
-        if (cart.m_Position >= path.PathLength)
+        if (!IsAlive || agent == null) return;
+
+        if (!agent.isOnNavMesh) return;
+
+        if (agent.pathPending || !agent.hasPath) return;
+
+        RemainingDistance = agent.remainingDistance;
+
+        // Stopping Distance is how far the agent needs to be before it counts as arrived, currently set to 0
+        if (RemainingDistance <= agent.stoppingDistance)
         {
             ReachEnd();
         }
-        
+        Debug.Log(RemainingDistance + "hello");
     }
 
     public void TakeDamage(int amount)
@@ -90,4 +117,53 @@ public class EnemyController : MonoBehaviour
         GameController.Instance.EnemyReachedBase(Definition);
         Destroy(gameObject);
     }
-}
+
+    public void SetTargetDestination (Vector3 target)
+    {
+        agent.SetDestination(target);
+        if (!agent.isOnNavMesh)
+        {
+            Debug.LogError("Enemy is not on the NavMesh");
+            return;
+        }
+    }
+    // LET THE RECORD SHOW I HATE THIS GODDAMN FUNCTION AND YEARN FOR A BETTER WAY TO TRACK ENEMY PROGRESS
+    public float GetDistanceAlongPath() 
+    {
+        Vector3[] corners = agent.path.corners;
+
+        if (corners.Length < 2)
+            return 0f;
+
+        Vector3 position = agent.nextPosition;
+        float distance = 0f;
+
+        for (int i = 0; i < corners.Length - 1; i++)
+        {
+            Vector3 a = corners[i];
+            Vector3 b = corners[i + 1];
+
+            Vector3 segment = b - a;
+
+            float t = Mathf.Clamp01(
+                Vector3.Dot(position - a, segment) / segment.sqrMagnitude
+            );
+
+            Vector3 closest = a + t * segment;
+
+            if (Vector3.Distance(position, closest) < 0.5f)
+            {
+                distance += Vector3.Distance(a, closest);
+
+                for (int j = i + 1; j < corners.Length - 1; j++)
+                    distance += Vector3.Distance(corners[j], corners[j + 1]);
+
+                return distance;
+            }
+
+            distance += segment.magnitude;
+        }
+
+        return distance;
+    }
+ }
