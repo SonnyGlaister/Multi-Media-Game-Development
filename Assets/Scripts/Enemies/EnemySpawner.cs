@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -12,11 +13,16 @@ public class EnemySpawner : MonoBehaviour
     public float setupTime = 3; //Time between waves
     public int[][] enemySpawnNumbers =
     {
-        new int[] {10,-1, -1},
-        new int[] {8,6, -1},
-        new int[] {8,10, -1},
-        new int[] {2, 15, -1},
-        new int[] {20, 20, 1}
+        new int[] {10,-1, -1, -1, -1},
+        new int[] {5,6, -1, 3, -1},
+        new int[] {4,10, 2, 4, -1},
+        new int[] {0, 7, 8, 2, -1},
+        new int[] {0, 0, 15, 10, -1 },
+        new int[] {5, 2, 12, 12, -1 },
+        new int[] {6, 12, 10, 4, -1 },
+        new int[] {3, 3, 14, 12, -1 },
+        new int[] {5, 7, 18, 9, -1},
+        new int[] {15, 15, 15, 15, 1}
     }; //Set amounts of enemy types for all waves. If -1, cannot be randomly spawned in wave.
 
     public float enemySpawnCooldown; // Time between enemy spawns in a wave
