@@ -30,8 +30,8 @@ public class EnemySpawner : MonoBehaviour
     private int waveNum = 0;
 
     private float RANDOMDIVISOR = 2.2F;
-
     private int[][] randomisedEnemySpawnNumbers;
+    private GameObject baseTarget;
 
 
 
@@ -48,6 +48,8 @@ public class EnemySpawner : MonoBehaviour
         timer = enemySpawnCooldown;
 
         if (waveNum > 0) standardRandomisation();
+
+        baseTarget = GameObject.FindWithTag("Base");
     }
 
     // Update is called once per frame
@@ -83,6 +85,7 @@ public class EnemySpawner : MonoBehaviour
                 }
                 EnemyController enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
                 enemy.Init(enemyTypes[select]);
+                enemy.SetTargetDestination(baseTarget.transform.position);
 
                 spawnedEnemyTotal++;
                 randomisedEnemySpawnNumbers[waveNum][select] -= 1;
