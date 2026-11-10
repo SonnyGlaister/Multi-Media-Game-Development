@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 335a7db7a679b4504828f7099a2473ea, type: 3}
+  m_Name: Blue
+  m_EditorClassIdentifier: 
+  displayName: Blue
+  color: {r: 0, g: 0, b: 1, a: 1}
+  lockoutThreshold: 1
+  perks:
+  - {fileID: 11400000, guid: b3dc12d8f51defe4e8e133ce2837c856, type: 2}
+  - {fileID: 11400000, guid: af9d02f52d42a9f4d86b74f31d1710a2, type: 2}

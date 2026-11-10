@@ -16,4 +16,8 @@ MonoBehaviour:
   cost: 15
   cooldownMultiplier: 0.83
   rangeMultiplier: 1
+  piercingBonus: 0
   damageBonus: 0
+  description: Multiplies cooldown by 0.83
+  image: {fileID: 21300000, guid: d48861020c21e204791249575b4ee639, type: 3}
+  textBoxImage: {fileID: 21300000, guid: cfe2f4192a9024846bed3a50c823583c, type: 3}

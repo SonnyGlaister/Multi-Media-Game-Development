@@ -11,6 +11,9 @@ public class PerkManager : MonoBehaviour
     public float CooldownMultiplier { get; private set; } = 1f;
     public float RangeMultiplier { get; private set; } = 1f;
     public int DamageBonus { get; private set; }
+    public int PiercingBonus { get; private set; }
+    public float AOERangeBonus { get; private set; }
+    public float AOEDamageMultiplier { get; private set; }
 
     // Per faction: how many tiers you own and how many tiers can still be bought
     private readonly Dictionary<FactionDefinition, int> owned = new();
@@ -72,6 +75,8 @@ public class PerkManager : MonoBehaviour
         CooldownMultiplier = 1f;
         RangeMultiplier = 1f;
         DamageBonus = 0;
+        PiercingBonus = 0;
+        AOERangeBonus = 0;
 
         foreach (FactionDefinition f in GameController.Instance.Factions)
         {
@@ -81,6 +86,9 @@ public class PerkManager : MonoBehaviour
                 CooldownMultiplier *= p.cooldownMultiplier;
                 RangeMultiplier *= p.rangeMultiplier;
                 DamageBonus += p.damageBonus;
+                PiercingBonus += p.piercingBonus;
+                AOERangeBonus += p.aoeRangeBonus;
+                AOEDamageMultiplier += p.aoeDamageMultiplier;
             }
         }
     }

@@ -9,12 +9,18 @@ public class TowerController : MonoBehaviour
 
     public float range = 8;
     public int damage = 1;
+    public int piercing = 0;
     public float fireCooldown = 1f;
+    public float aoeRange = 0;
+    public float aoeDamage = 0;
 
     // Real stats after perks
     float Cooldown => fireCooldown * PerkManager.Instance.CooldownMultiplier;
     float Range => range * PerkManager.Instance.RangeMultiplier;
     int Damage => damage + PerkManager.Instance.DamageBonus;
+    int Piercing => piercing + PerkManager.Instance.PiercingBonus;
+    float AOERange => aoeRange + PerkManager.Instance.AOERangeBonus;
+    float AOEDamage => aoeDamage + PerkManager.Instance.AOEDamageMultiplier;
 
     public Rigidbody projectile;
     public float projectileSpeed = 20;
@@ -75,24 +81,25 @@ public class TowerController : MonoBehaviour
     EnemyController FindTarget()
     {
         EnemyController best = null;
-        float bestProgress = -1f;
+        float bestProgress = Mathf.Infinity;
 
         foreach (GameObject go in GameObject.FindGameObjectsWithTag("Enemy"))
         {
             if (go == null) continue;
-
             EnemyController enemy = go.GetComponent<EnemyController>();
-            // if (enemy == null || !enemy.IsAlive) continue;
             if (enemy == null) continue;
             if (!enemy.IsAlive) continue;
 
             if (Vector3.Distance(transform.position, go.transform.position) > Range) continue;
 
-            if (enemy.DistanceTravelled > bestProgress)
+            float enemyDistance = enemy.GetDistanceAlongPath();
+
+            if (enemyDistance < bestProgress)
             {
-                bestProgress = enemy.DistanceTravelled;
+                bestProgress = enemyDistance;
                 best = enemy;
             }
+            // Debug.Log(bestProgress);
         }
         return best;
     }
@@ -100,6 +107,6 @@ public class TowerController : MonoBehaviour
     void Shoot(EnemyController target)
     {
         Rigidbody instance = Instantiate(projectile, transform.position, Quaternion.identity);
-        instance.GetComponent<ProjectileController>().Launch(target.transform, Damage, projectileSpeed);
+        instance.GetComponent<ProjectileController>().Launch(target.transform, Damage, projectileSpeed, Piercing, AOERange, AOEDamage);
     }
 }

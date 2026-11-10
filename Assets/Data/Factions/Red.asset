@@ -18,3 +18,4 @@ MonoBehaviour:
   perks:
   - {fileID: 11400000, guid: 95807dcff45d0411e8e94476c2b7a7ae, type: 2}
   - {fileID: 11400000, guid: fb45f269c44f14226944ef66ee041c4b, type: 2}
+  - {fileID: 11400000, guid: c33925fd018b802409179811eaa02e1c, type: 2}
