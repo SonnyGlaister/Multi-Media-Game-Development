@@ -12,14 +12,11 @@ public class EnemyController : MonoBehaviour
 
     public EnemyDefinition Definition { get; private set; }
     public FactionDefinition Faction => Definition != null ? Definition.faction : null;
-
-    // public float DistanceTravelled => cart != null ? cart.m_Position : 0f;
     public float RemainingDistance;
     public bool IsAlive { get; private set; } = true;
 
     private int health;
-    // private CinemachinePath path;
-    // private CinemachineDollyCart cart;
+    private float speed;
     private UnityEngine.AI.NavMeshAgent agent;
     private Vector3 startPosition;
 
@@ -31,9 +28,11 @@ public class EnemyController : MonoBehaviour
         name = definition.displayName;
         health = definition.maxHealth;
         transform.localScale = Vector3.one * definition.scale;
+        speed = definition.speed;
 
-        // cart = GetComponent<CinemachineDollyCart>();
-        // if (cart != null) cart.m_Speed = definition.speed;
+        agent = GetComponent<NavMeshAgent>();
+        agent.speed = speed;
+        agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
 
         if (definition.modelPrefab != null)
         {
@@ -49,34 +48,12 @@ public class EnemyController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
-
-        // path = GameObject.Find("LevelPath").GetComponent<CinemachinePath>();
-        // cart = GetComponent<CinemachineDollyCart>();
-        // if (cart != null && path != null)
-        // {
-        //     cart.m_Path = path;
-        // }
-
         startPosition = transform.position;
-
-    }
-
-    void Awake()
-    {
-        agent = GetComponent<NavMeshAgent>();
-        // RemainingDistance = agent.remainingDistance;
     }
 
     // Update is called once per frame
     void Update()
     {
-        // if (!IsAlive || cart == null || path == null) return;
-        // if (cart.m_Position >= path.PathLength)
-        // {
-        //     ReachEnd();
-        // }
-
         if (!IsAlive || agent == null) return;
 
         if (!agent.isOnNavMesh) return;
@@ -85,12 +62,11 @@ public class EnemyController : MonoBehaviour
 
         RemainingDistance = agent.remainingDistance;
 
-        // Stopping Distance is how far the agent needs to be before it counts as arrived, currently set to 0
+        // Stopping Distance is how far the agent needs to be before it counts as arrived, currently set to 0.5
         if (RemainingDistance <= agent.stoppingDistance)
         {
             ReachEnd();
         }
-        Debug.Log(RemainingDistance + "hello");
     }
 
     public void TakeDamage(int amount)

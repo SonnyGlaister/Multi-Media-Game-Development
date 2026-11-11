@@ -18,6 +18,8 @@ MonoBehaviour:
   rangeMultiplier: 1
   piercingBonus: 1
   damageBonus: 0
+  aoeRangeBonus: 0
+  aoeDamageMultiplier: 0
   description: Adds one level of piercing to the projectile
   image: {fileID: 21300000, guid: 0e6688e72ca8ac044add8fc2e4a1b680, type: 3}
   textBoxImage: {fileID: 21300000, guid: c477dd30a3b03004e96957f4914ae307, type: 3}
