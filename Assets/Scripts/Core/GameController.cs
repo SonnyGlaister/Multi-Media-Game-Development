@@ -10,7 +10,7 @@ public class GameController : MonoBehaviour
 {
     public static GameController Instance { get; private set; }
 
-    public FactionDefinition[] Factions { get; private set; }
+    public FactionDefinition[] Factions;
 
     private readonly Dictionary<FactionDefinition, int> totalHits = new();
     private readonly Dictionary<FactionDefinition, int> pressure = new();
@@ -22,7 +22,7 @@ public class GameController : MonoBehaviour
 
     public int startingCurrency = 5;
     public int startingBaseHealth = 3;
-    public int totalWaves = 2;
+    private int totalWaves =1;
 
     public TextMeshProUGUI countdownText;
     public TextMeshProUGUI waveText;
@@ -30,7 +30,7 @@ public class GameController : MonoBehaviour
     public TextMeshProUGUI hudText;
     public TextMeshProUGUI messageText;
 
-    public EnemySpawner spawner;
+    public EnemySpawner2 spawner;
     public Button startButton;
 
     public int Currency { get; set; }
@@ -54,8 +54,8 @@ public class GameController : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-
-        Factions = spawner.enemyTypes.Where(t => t != null && t.faction != null).Select(t => t.faction).Distinct().ToArray();
+        // Factions = spawner.enemyTypes.Where(t => t != null && t.faction != null).Select(t => t.faction).Distinct().ToArray();
+        // Factions[] now edited in unity editor
     }
 
     // Start is called before the first frame update
@@ -271,5 +271,10 @@ public class GameController : MonoBehaviour
     private void GoToMainMenu()
     {
         SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+    }
+
+    public void setTotalWaves(int w)
+    {
+        totalWaves = w;
     }
 }

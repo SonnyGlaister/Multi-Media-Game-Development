@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Boss
   faction: {fileID: 11400000, guid: 9acb1286769f641cc9ee05eccd5086e1, type: 2}
-  maxHealth: 30
+  maxHealth: 60
   speed: 1
   reward: 30
   damageToBase: 6
