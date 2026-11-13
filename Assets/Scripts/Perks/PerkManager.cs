@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum PerkState { Available, CantAfford, NeedsPrevious, Owned, Revoked, LockedOut }
+public enum PerkState { Available, CantAfford, NeedsPrevious, Owned, Revoked, LockedOut, Hidden }
 
 public class PerkManager : MonoBehaviour
 {
