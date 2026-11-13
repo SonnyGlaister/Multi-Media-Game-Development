@@ -2275,7 +2275,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 864900003}
-  - component: {fileID: 864900002}
+  - component: {fileID: 864900004}
   m_Layer: 0
   m_Name: Spawner
   m_TagString: Untagged
@@ -2283,27 +2283,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &864900002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 864900001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a9adea96a5b616458f9deec85c20302, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 8619738070640230305, guid: 2aba422435ea081418e8d3fedd41616b, type: 3}
-  enemyTypes:
-  - {fileID: 11400000, guid: 0c59c052e1b5d4d34908c00f524be831, type: 2}
-  - {fileID: 11400000, guid: e7293944b545044678faaf0b037079c7, type: 2}
-  - {fileID: 11400000, guid: ee221d54f52c8a740ae206e4b6438cc0, type: 2}
-  - {fileID: 11400000, guid: b8328e29a6038d04692a027b94f49ba7, type: 2}
-  - {fileID: 11400000, guid: 72c86ac9e7222493b907e5e10394c4cf, type: 2}
-  setupTime: 2
-  enemySpawnCooldown: 0.5
 --- !u!4 &864900003
 Transform:
   m_ObjectHideFlags: 0
@@ -2319,6 +2298,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &864900004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 864900001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0e18e25023484849aed8cb376b7f97f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyPrefab: {fileID: 8619738070640230305, guid: 2aba422435ea081418e8d3fedd41616b, type: 3}
+  waves:
+  - {fileID: 11400000, guid: 9202c43955d110a4397c0c7e9cd92f4f, type: 2}
+  - {fileID: 11400000, guid: 0db9272b85cf8fb49a956c47f17fc1fa, type: 2}
+  - {fileID: 11400000, guid: 2419a49963e5fc9448b8615eb91163bd, type: 2}
+  - {fileID: 11400000, guid: 49614d5f0f198854a8c2b46fdec7c5bf, type: 2}
+  - {fileID: 11400000, guid: b398a2895e64d414eb27ea69ade3104b, type: 2}
+  - {fileID: 11400000, guid: 00bda25c18dc0d84d8f63db908769182, type: 2}
+  - {fileID: 11400000, guid: fdb691cf90e81b740976b9d0f5d82d81, type: 2}
 --- !u!1 &865540480
 GameObject:
   m_ObjectHideFlags: 0
@@ -3175,7 +3175,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-202894
+  m_Name: pb_Mesh27014
   serializedVersion: 11
   m_SubMeshes:
   - serializedVersion: 2
@@ -4274,15 +4274,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ec563d36eb294e4b9118e7a550080f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Factions:
+  - {fileID: 11400000, guid: 20d397e50f5a3f24bb75ac1984960296, type: 2}
+  - {fileID: 11400000, guid: fd40ca7ec4fede442bc9a51e8a93fbb5, type: 2}
+  - {fileID: 11400000, guid: 9acb1286769f641cc9ee05eccd5086e1, type: 2}
+  - {fileID: 11400000, guid: 09baa66b82ece4bc5bb7d10a019d97c4, type: 2}
   startingCurrency: 5
   startingBaseHealth: 10
-  totalWaves: 5
   countdownText: {fileID: 1622879448}
   waveText: {fileID: 347689583}
   damageText: {fileID: 331317824}
   hudText: {fileID: 580054779}
   messageText: {fileID: 606282552}
-  spawner: {fileID: 864900002}
+  spawner: {fileID: 864900004}
   startButton: {fileID: 1647133804}
   GameOverButtons: {fileID: 1287604438}
 --- !u!4 &2081817160
