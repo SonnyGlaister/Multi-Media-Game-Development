@@ -1,0 +1,1 @@
+public enum MessageType { Info, Success, Warning, Danger }

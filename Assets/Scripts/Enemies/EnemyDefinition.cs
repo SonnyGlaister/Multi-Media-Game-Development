@@ -1,7 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+// A model by an AI company.
 [CreateAssetMenu(menuName = "Game/Enemy")]
 public class EnemyDefinition : ScriptableObject
 {
@@ -20,6 +19,14 @@ public class EnemyDefinition : ScriptableObject
     public bool useFactionColor;
     public Color customColor;
     public GameObject modelPrefab;
+
+    [Header("Presentation")]
+    [Tooltip("Model tier: 1 = smallest model, higher = bigger/stronger.")]
+    public int tier = 1;
+    [Tooltip("Short label for previews, e.g. S, M, L, XL or a model-size name.")]
+    public string tierLabel = "";
+    public Sprite icon;
+    [TextArea] public string description = "";
 
     public Color Tint => useFactionColor && faction != null ? faction.color : customColor;
 }

@@ -128,7 +128,7 @@ public class TowerPlacer : MonoBehaviour
 
         if (!GameController.Instance.Purchase(prefab.currentCost))
         {
-            GameController.Instance.ShowMessage($"Not enough gold");
+            GameController.Instance.ShowMessage($"Not enough skill points");
             return;
         }
 
