@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6251775299486764173}
   - component: {fileID: 2050345051544387984}
   - component: {fileID: 7961257320124112055}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -126,7 +126,7 @@ GameObject:
   - component: {fileID: 744373228637879547}
   - component: {fileID: 2066286759686262006}
   - component: {fileID: 1555923930918671487}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: RemainingHealth
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -201,7 +201,7 @@ GameObject:
   - component: {fileID: 6467254328826528549}
   - component: {fileID: 2924291470846339883}
   - component: {fileID: 4068904384064603130}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: HealthBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -278,10 +278,9 @@ GameObject:
   - component: {fileID: 4179654881972917835}
   - component: {fileID: 3685849952174021465}
   - component: {fileID: 8387163393518037794}
-  - component: {fileID: 5928613008999383260}
   - component: {fileID: 8619738070640230305}
   - component: {fileID: 727814154957588623}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -375,23 +374,6 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &5928613008999383260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8533751683950400790}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 99a9c787e5d1bbf48a389834c4a9641c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Path: {fileID: 0}
-  m_UpdateMethod: 0
-  m_PositionUnits: 1
-  m_Speed: 0
-  m_Position: 0
 --- !u!114 &8619738070640230305
 MonoBehaviour:
   m_ObjectHideFlags: 0

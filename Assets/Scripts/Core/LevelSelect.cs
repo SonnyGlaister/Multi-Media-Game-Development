@@ -27,6 +27,7 @@ public class LevelSelect : MonoBehaviour
 
     void StartLevel(int level)
     {
+        Time.timeScale = 1f;
         SceneManager.LoadScene("Level"+level, LoadSceneMode.Single);
     }
 }
