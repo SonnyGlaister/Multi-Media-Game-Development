@@ -21,6 +21,7 @@ public class GameStrings : ScriptableObject
 
     [Header("Resources")]
     public string skillPointsName = "Skill Points";
+    public string skillTreeTitle = "Skill Tree";
     public string baseName = "Human HQ";
     public string baseHitFormat = "{0} breached {1} (-{2})";
 

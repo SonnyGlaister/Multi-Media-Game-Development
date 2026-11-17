@@ -54,7 +54,7 @@ public class TowerPlacer : MonoBehaviour
 
     public bool CanDrag()
     {
-        return !GameController.Instance.IsGameOver && GameController.Instance.HasGameStarted && !SkillTreeMenu.Instance.isOpen;
+        return !GameController.Instance.IsGameOver && GameController.Instance.HasGameStarted && !(SkillTreeMenu.Instance != null && SkillTreeMenu.Instance.IsOpen);
     }
 
     // Called when a tower drag starts
