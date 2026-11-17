@@ -35,7 +35,7 @@ public class EnemyController : MonoBehaviour
         name = definition.displayName;
         health = definition.maxHealth;
         transform.localScale = Vector3.one * definition.scale;
-        speed = definition.speed;
+        agent.speed = definition.speed;
 
         if (definition.modelPrefab != null)
         {

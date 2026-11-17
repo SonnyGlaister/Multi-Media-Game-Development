@@ -1,123 +1,83 @@
-using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
+using System.Linq;
+using System.Collections.Generic;
 
 public class EnemySpawner : MonoBehaviour
 {
     public EnemyController enemyPrefab;
-    public EnemyDefinition[] enemyTypes;
+    public WaveDefinition[] waves;
+    public int waveNum { get; private set; }
 
-    public float setupTime = 3; // Time between waves
-    public int[][] enemySpawnNumbers =
-    {
-        new int[] {10,-1, -1, -1, -1},
-        new int[] {5,6, -1, 3, -1},
-        new int[] {4,10, 2, 4, -1},
-        new int[] {0, 7, 8, 2, -1},
-        new int[] {0, 0, 15, 10, -1 },
-        new int[] {5, 2, 12, 12, -1 },
-        new int[] {6, 12, 10, 4, -1 },
-        new int[] {3, 3, 14, 12, -1 },
-        new int[] {5, 7, 18, 9, -1},
-        new int[] {15, 15, 15, 15, 1}
-    }; //Set amounts of enemy types for all waves. If -1, cannot be randomly spawned in wave.
-
-    public float enemySpawnCooldown; // Time between enemy spawns in a wave
-
-    private int enemySpawnNumber = 0;
-    public float SetupTimeRemaining { get; private set; }
-    public bool FinishedSpawning => spawnedEnemyTotal >= enemySpawnNumber;
-
-    // UI info
-    public int WaveCount => enemySpawnNumbers.Length;
-    public int TotalThisWave => enemySpawnNumber;
-    public int SpawnedThisWave => spawnedEnemyTotal;
-    public float SetupDuration => setupTime;
-
-    private int spawnedEnemyTotal;
-    private float timer;
-    private int waveNum = 0;
-
-    private float RANDOMDIVISOR = 2.2F;
-    private int[][] randomisedEnemySpawnNumbers;
-    private int[] waveSnapshot; // counts at the start of the wave (for the preview)
     private GameObject baseTarget;
+    private bool spawning=false;
 
-    private void Awake()
-    {
-        Random.InitState(System.DateTime.Now.Millisecond);
+    public bool FinishedSpawning => spawnedBlockTotal >= blockTotal;
 
-        randomisedEnemySpawnNumbers = cloneJaggedArray(enemySpawnNumbers);
-        waveNum = 0;
-        SetupTimeRemaining = setupTime;
-        getTotalEnemies();
-        timer = enemySpawnCooldown;
-        TakeSnapshot();
-    }
+    private int spawnedEnemytotal;
+    private int blocks;
+    private int blockTotal;
+    private int spawnedBlockTotal = 0;
+    private EnemySpawnBlockDefinition[] enemies;
+    public float SetupTimeRemaining { get; private set; }
 
-    private void Start()
+    // GameController info
+    public int WaveCount => waves.Length;
+    public float SetupDuration => waves[waveNum].startTime;
+    public int TotalThisWave { get; private set; }
+    public int SpawnedThisWave { get; private set; }
+
+    // Distinct enemy types across all waves
+    public EnemyDefinition[] enemyTypes =>
+        waves.Where(w => w != null)
+             .SelectMany(w => w.enemies)
+             .Where(b => b != null && b.enemyType != null)
+             .Select(b => b.enemyType)
+             .Distinct()
+             .ToArray();
+
+    // Start is called before the first frame update
+    void Start()
     {
         baseTarget = GameObject.FindWithTag("Base");
+        ResetSpawner();
     }
 
-    private void Update()
+    // Update is called once per frame
+    void Update()
     {
-        if (!GameController.Instance.HasGameStarted || GameController.Instance.IsGameOver) return;
-
-        if (InSetup())
+        if (GameController.Instance.HasGameStarted && !GameController.Instance.IsGameOver)
         {
-            SetupTimeRemaining -= Time.deltaTime;
-            return;
-        }
-
-        if (!GameController.Instance.HasWaveStarted)
-        {
-            GameController.Instance.StartWave();
-        }
-
-        if (FinishedSpawning) return;
-
-        timer += Time.deltaTime;
-        if (timer >= enemySpawnCooldown)
-        {
-            int select = 0;
-            for (int i = 0; i < randomisedEnemySpawnNumbers[waveNum].Length; i++)
+            // If in setup time, decrease time remaining and return
+            if (InSetup())
             {
-                if (randomisedEnemySpawnNumbers[waveNum][i] != 0)
-                {
-                    select = i;
-                    break;
-                }
+                SetupTimeRemaining -= Time.deltaTime;
+                return;
             }
 
-            EnemyController enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
-            enemy.Init(enemyTypes[select]);
-            enemy.SetTargetDestination(baseTarget.transform.position);
-
-            spawnedEnemyTotal++;
-            randomisedEnemySpawnNumbers[waveNum][select] -= 1;
-            timer = 0;
+            // If Game has started but wave hasn't call for wave start
+            if (!GameController.Instance.HasWaveStarted)
+            {
+                GameController.Instance.StartWave();
+            }
+            //If currently spawning a block or have finished spawning the wave, don't do anything
+            if (FinishedSpawning || spawning) return;
+            //Start Coroutine. Allows enemies to spawn and initialise pauses without interrupting Update() method and general game flow.
+            StartCoroutine(SpawnEnemies());
         }
     }
 
-    private bool InSetup()
-    {
-        if (SetupTimeRemaining > 0) return true;
-        if (!GameController.Instance.HasWaveStarted) GameController.Instance.StartWave();
-        return false;
-    }
-
-    // Called before every round (besides 0).
     public void ResetSpawner()
     {
         waveNum = GameController.Instance.currentWave;
-        spawnedEnemyTotal = 0;
-        SetupTimeRemaining = setupTime;
-        timer = enemySpawnCooldown;
-        standardRandomisation();
-        TakeSnapshot();
+        spawnedBlockTotal = 0;
+        SpawnedThisWave = 0;
+        SetupTimeRemaining = waves[waveNum].startTime;
+        blocks = waves[waveNum].enemies.Length;
+        blockTotal = blocks;
+        TotalThisWave = waves[waveNum].enemies.Sum(b => b.enemyAmount);
     }
 
-    // Ends the setup countdown now
     public float SkipSetup()
     {
         float skipped = Mathf.Max(0f, SetupTimeRemaining);
@@ -125,75 +85,62 @@ public class EnemySpawner : MonoBehaviour
         return skipped;
     }
 
-    // Fills 'into' with (enemy type, count) for the current/upcoming wave.
     public void GetComposition(List<(EnemyDefinition def, int count)> into)
     {
         into.Clear();
-        if (waveSnapshot == null) return;
-        for (int i = 0; i < waveSnapshot.Length && i < enemyTypes.Length; i++)
+        if (waves == null || waveNum >= waves.Length) return;
+        foreach (var grp in waves[waveNum].enemies.Where(b => b != null && b.enemyType != null)
+                                                  .GroupBy(b => b.enemyType))
+            into.Add((grp.Key, grp.Sum(b => b.enemyAmount)));
+    }
+
+    // Check if in Setup stage, StartWave if not already
+    private bool InSetup()
+    {
+        if (SetupTimeRemaining > 0)
         {
-            if (waveSnapshot[i] > 0 && enemyTypes[i] != null) into.Add((enemyTypes[i], waveSnapshot[i]));
+            return true;
         }
-    }
-
-    private void TakeSnapshot()
-    {
-        if (randomisedEnemySpawnNumbers == null || waveNum >= randomisedEnemySpawnNumbers.Length) return;
-        waveSnapshot = (int[])randomisedEnemySpawnNumbers[waveNum].Clone();
-    }
-
-    // Logarithmic wave randomisation
-    private void standardRandomisation()
-    {
-        getTotalEnemies();
-        int l = randomisedEnemySpawnNumbers[waveNum].Length;
-
-        float randomChance = Mathf.Log10(waveNum);
-        List<int> types = new List<int>();
-
-        randomChance = randomChance / RANDOMDIVISOR;
-        if (randomChance > 0.7) randomChance = 0.7F;
-
-        for (int j = 0; j < l; j++)
+        else if (GameController.Instance.HasWaveStarted == false)
         {
-            if (randomisedEnemySpawnNumbers[waveNum][j] != -1 && randomisedEnemySpawnNumbers[waveNum][j] != 1)
+            GameController.Instance.StartWave();
+        }
+        return false;
+
+    }
+
+
+    // IEnumerator allows the method to return pauses for n amount of time. SpawnEnemies calls method SpawnEnemy on all enemies in block.
+    IEnumerator SpawnEnemies()
+    {
+
+        enemies = waves[waveNum].enemies;
+        spawning = true; //Indicate that spawning has started so that we don't make more coroutines
+        // For all blocks
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            // Spawn the enemy type of the current block for the amount specified. Call for delay betwwen spawns
+            SpawnEnemy(enemies[i].enemyType);
+            for (int j = 1; j< enemies[i].enemyAmount; j++)
             {
-                types.Add(j);
+                yield return new WaitForSeconds(enemies[i].delayBetween);
+                SpawnEnemy(enemies[i].enemyType);
             }
+            // Track total spawned blocks and incur delay between spawn groups
+            spawnedBlockTotal += 1;
+            yield return new WaitForSeconds(enemies[i].delayAfterGroup);
         }
-
-        int totalRandomised = (int)(randomChance * enemySpawnNumber);
-        for (int i = 0; i < totalRandomised; i++)
-        {
-            int r1 = types[Random.Range(0, types.Count)];
-            randomisedEnemySpawnNumbers[waveNum][r1] -= 1;
-
-            int r2 = types[Random.Range(0, types.Count)];
-            randomisedEnemySpawnNumbers[waveNum][r2] += 1;
-        }
+        spawning = false;
     }
 
-    // Total enemies to spawn during the upcoming wave
-    private void getTotalEnemies()
+    // Spawn enemy of type e
+    private void SpawnEnemy(EnemyDefinition e)
     {
-        int sum = 0;
-        foreach (int num in randomisedEnemySpawnNumbers[waveNum])
-        {
-            if (num == -1) continue;
-            sum += num;
-        }
-        enemySpawnNumber = sum;
-    }
-
-    // Used to clone original enemy spawn numbers array before randomisation.
-    public int[][] cloneJaggedArray(int[][] original)
-    {
-        if (original == null) return null;
-        int[][] clone = new int[original.Length][];
-        for (int i = 0; i < original.Length; i++)
-        {
-            clone[i] = original[i] != null ? (int[])original[i].Clone() : null;
-        }
-        return clone;
+        EnemyController enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+        SpawnedThisWave++;
+        enemy.Init(e);
+        enemy.SetTargetDestination(baseTarget.transform.position);
     }
 }
+    
+
