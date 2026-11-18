@@ -39,7 +39,8 @@ public class PerkButton : MonoBehaviour
         button.image.sprite = perk.image;
         PerkState state = PerkManager.Instance.GetState(faction, tier);
         button.interactable = state == PerkState.Available;
-
+        label.text = $"{perk.displayName} ({perk.cost})";
+        description.text = $"<b>{perk.displayName}</b>\n {perk.cost} skill points\n\n {perk.description}";
         textBox.sprite = perk.textBoxImage;
 
         // We check if the grandparent's state is bought because that is more specific than checking if the parent needs previous

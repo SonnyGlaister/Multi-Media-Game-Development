@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dac3a25db72c54b4e97b40babbb9f448, type: 3}
+  m_Name: GameStrings
+  m_EditorClassIdentifier: 
+  skillPointsName: Skill Points
+  baseName: Human HQ
+  baseHitFormat: '{0} breached {1} (-{2})'
+  waveFormat: Wave {0} / {1}
+  waveBannerFormat: WAVE {0}
+  finalWave: FINAL WAVE
+  nextWaveTitle: Incoming
+  startPrompt: Press Start, then build defences before the first wave arrives.
+  startButton: Start
+  callNowButton: Call now
+  earlyBonusFormat: +{0} {1} for calling early
+  waveClearedFormat: Wave {0} repelled
+  pressureLabel: Influence
+  lockedLabel: CAPTURED
+  nextHitRevokesFormat: 'Next breach: lose {0}'
+  revokedToastFormat: '{0} acquired your {1}'
+  lockedToastFormat: '{0} has captured its research branch'
+  pressureTooltipFormat: 'Every {0} model that reaches {1} adds influence.
+
+    When
+    the bar fills, {0} acquires your highest {0} upgrade and you can''t research
+    it again.'
+  victoryTitle: HUMANITY HOLDS
+  defeatTitle: HQ OVERRUN
+  wavesSurvivedFormat: '{0} / {1} waves survived'

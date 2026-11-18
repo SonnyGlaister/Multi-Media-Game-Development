@@ -54,7 +54,7 @@ public class TowerPlacer : MonoBehaviour
 
     public bool CanDrag()
     {
-        return !GameController.Instance.IsGameOver && GameController.Instance.HasGameStarted && !SkillTreeMenu.Instance.isOpen;
+        return !GameController.Instance.IsGameOver && GameController.Instance.HasGameStarted && !(SkillTreeMenu.Instance != null && SkillTreeMenu.Instance.IsOpen);
     }
 
     // Called when a tower drag starts
@@ -128,7 +128,7 @@ public class TowerPlacer : MonoBehaviour
 
         if (!GameController.Instance.Purchase(prefab.currentCost))
         {
-            GameController.Instance.ShowMessage($"Not enough gold");
+            GameController.Instance.ShowMessage($"Not enough skill points");
             return;
         }
 

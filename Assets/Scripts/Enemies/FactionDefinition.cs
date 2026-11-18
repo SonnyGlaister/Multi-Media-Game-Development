@@ -1,7 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+// An attacking AI company
 [CreateAssetMenu(menuName = "Game/Faction")]
 public class FactionDefinition : ScriptableObject
 {
@@ -9,4 +8,5 @@ public class FactionDefinition : ScriptableObject
     public Color color;
     public int lockoutThreshold;
     public PerkDefinition[] perks;
+    public Sprite icon;
 }
