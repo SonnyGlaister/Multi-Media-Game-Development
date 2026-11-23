@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Cinemachine;
 using UnityEngine.UI;
+using UnityEngine.AI;
+// using UnityEngine.AI.Navigation;
 
 public class TowerPlacer : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class TowerPlacer : MonoBehaviour
 
     public TowerController[] towerPrefabs;
     public GameObject baseObject;
-    public CinemachinePath path;
+    // public NavMeshSurface navMesh;
     public Collider ground;
 
     public double minPathDist = 1;
@@ -157,15 +158,18 @@ public class TowerPlacer : MonoBehaviour
         return null;
     }
 
-    private bool IsTooCloseToPath(Vector3 point)
+private bool IsTooCloseToPath(Vector3 point)
+{
+    if (NavMesh.SamplePosition(point, out NavMeshHit hit, (float)minPathDist, NavMesh.AllAreas))
     {
-        float pathPos = path.FindClosestPoint(point, 0, -1, 10);
-        Vector3 closest = path.EvaluatePosition(pathPos);
-
         Vector2 point2D = new Vector2(point.x, point.z);
-        Vector2 path2D = new Vector2(closest.x, closest.z);
-        return Vector2.Distance(point2D, path2D) < minPathDist;
+        Vector2 navMeshPoint2D = new Vector2(hit.position.x, hit.position.z);
+
+        return Vector2.Distance(point2D, navMeshPoint2D) < minPathDist;
     }
+
+    return false;
+}
 
     private bool IsTooCloseToTower(Vector3 point)
     {
