@@ -1,12 +1,18 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum TargetMode { First, Last, Strongest, Closest }
+
 public class TowerController : MonoBehaviour
 {
+    public static readonly List<TowerController> Towers = new();
+
+    [Header("Info (build drawer + info panel)")]
     public string displayName = "Tower";
     public Sprite icon;
+    [TextArea] public string description = "";
 
+    [Header("Base stats")]
     public float range = 8;
     public int damage = 1;
     public int piercing = 0;
@@ -14,99 +20,147 @@ public class TowerController : MonoBehaviour
     public float aoeRange = 0;
     public float aoeDamage = 0;
 
-    // Real stats after perks
-    float Cooldown => fireCooldown * PerkManager.Instance.CooldownMultiplier;
-    float Range => range * PerkManager.Instance.RangeMultiplier;
-    int Damage => damage + PerkManager.Instance.DamageBonus;
-    int Piercing => piercing + PerkManager.Instance.PiercingBonus;
-    float AOERange => aoeRange + PerkManager.Instance.AOERangeBonus;
-    float AOEDamage => aoeDamage + PerkManager.Instance.AOEDamageMultiplier;
+    [Header("Targeting")]
+    public TargetMode targetMode = TargetMode.First;
 
+    [Header("Projectile")]
     public Rigidbody projectile;
     public float projectileSpeed = 20;
 
+    [Header("Economy")]
     public int startCost = 5;
+    [Tooltip("How many of this tower cost Start Cost before the price grows.")]
+    public int flatPriceCount = 2;
+    [Tooltip("Each tower after that costs this many times more.")]
+    public float costGrowth = 2f;
+    [Range(0f, 1f)] public float sellRefund = 0.7f;
 
-    public int currentCost { get; private set; }
-    private float TOWERCOSTMULTIPLIER = 2.0f; //Multiplier to increase tower cost by
+    [Header("Range ring")]
+    [Tooltip("Child SpriteRenderer lying flat on the ground, 1 unit wide at scale 1, starts disabled.")]
+    public SpriteRenderer rangeRing;
 
-    private int placed;
+    // Effective stats
+    private static PerkManager P => PerkManager.Instance;
+    public float Cooldown => fireCooldown * (P != null ? P.CooldownMultiplier : 1f);
+    public float Range => range * (P != null ? P.RangeMultiplier : 1f);
+    public int Damage => damage + (P != null ? P.DamageBonus : 0);
+    public int Piercing => piercing + (P != null ? P.PiercingBonus : 0);
+    public float AOERange => aoeRange + (P != null ? P.AOERangeBonus : 0f);
+    public float AOEDamage => aoeDamage + (P != null ? P.AOEDamageMultiplier : 0f);
+    public float ShotsPerSecond => Cooldown > 0f ? 1f / Cooldown : 0f;
+    public float BaseShotsPerSecond => fireCooldown > 0f ? 1f / fireCooldown : 0f;
+    public float DamagePerSecond => Damage * ShotsPerSecond;
+
+    // This tower
+    public TowerController SourcePrefab { get; set; }
+    public int PaidCost { get; set; }
+    public int SellValue => Mathf.RoundToInt(PaidCost * sellRefund);
 
     private float timer;
-    private EnemyController currentTarget;
 
-    void Update()
+    private void OnEnable() => Towers.Add(this);
+    private void OnDisable() => Towers.Remove(this);
+
+    private void OnDestroy()
+    {
+        if (TowerSelection.Instance != null && TowerSelection.Instance.Selected == this)
+            TowerSelection.Instance.Deselect();
+    }
+
+    private void Update()
     {
         timer += Time.deltaTime;
-        currentTarget = FindTarget();
-
-        if (currentTarget != null)
+        EnemyController target = FindTarget();
+        if (target != null && timer >= Cooldown)
         {
-            // Debug: red line to the current target
-            Debug.DrawLine(transform.position, currentTarget.transform.position, Color.red);
-
-            // We should add debug to show radius of towers
-            if (timer >= Cooldown)
-            {
-                Shoot(currentTarget);
-                timer = 0f;
-            }
+            Shoot(target);
+            timer = 0f;
         }
     }
 
-    // Reset costs and placed totals.
-    public void ResetCost()
+    // Price of next tower
+    public int CostFor(int alreadyPlaced)
     {
-        placed = 0;
-        currentCost = startCost;
+        if (alreadyPlaced < flatPriceCount) return startCost;
+        return Mathf.RoundToInt(startCost * Mathf.Pow(costGrowth, alreadyPlaced - flatPriceCount + 1));
     }
 
-    // Update the cost based on total placed.
-    public void updateCost()
+    public void Sell()
     {
-        placed += 1;
-        // First 2 towers cost the same
-        if (placed < 2)
-        {
-            currentCost = startCost;
-        }
-        else
-        {
-            currentCost = (int)(currentCost * TOWERCOSTMULTIPLIER);
-        }
-
+        GameController gc = GameController.Instance;
+        if (gc == null || gc.IsGameOver) return;
+        gc.Refund(SellValue);
+        if (TowerPlacer.Instance != null) TowerPlacer.Instance.OnTowerSold(SourcePrefab);
+        Destroy(gameObject);
     }
 
-    // Picks the enemy in range that is furthest along the path
-    EnemyController FindTarget()
+    public void ShowRange(Color color)
+    {
+        if (rangeRing == null) return;
+        float diameter = Range * 2f;
+        rangeRing.transform.localScale = Vector3.one * (diameter / transform.lossyScale.x);
+        rangeRing.color = color;
+        rangeRing.enabled = true;
+    }
+
+    public void HideRange()
+    {
+        if (rangeRing != null) rangeRing.enabled = false;
+    }
+
+    public string StatsText()
+    {
+        string bonus = UITheme.Hex(UITheme.Current.bonus);
+        string Line(string label, float baseValue, float value, string format)
+        {
+            string v = Mathf.Approximately(baseValue, value)
+                ? value.ToString(format)
+                : $"{baseValue.ToString(format)} → <color=#{bonus}>{value.ToString(format)}</color>";
+            return $"{label}: {v}\n";
+        }
+
+        string text = Line("Damage", damage, Damage, "0")
+                    + Line("Shots/sec", BaseShotsPerSecond, ShotsPerSecond, "0.##")
+                    + Line("Range", range, Range, "0.#");
+        if (Piercing > 0) text += Line("Pierce", piercing, Piercing, "0");
+        if (AOERange > 0f) text += Line("Splash", aoeRange, AOERange, "0.#");
+        return text.TrimEnd('\n');
+    }
+
+    private EnemyController FindTarget()
     {
         EnemyController best = null;
-        float bestProgress = Mathf.Infinity;
+        float bestScore = float.NegativeInfinity;
+        float r = Range;
 
-        foreach (GameObject go in GameObject.FindGameObjectsWithTag("Enemy"))
+        foreach (EnemyController enemy in EnemyController.Alive)
         {
-            if (go == null) continue;
-            EnemyController enemy = go.GetComponent<EnemyController>();
-            if (enemy == null) continue;
             if (!enemy.IsAlive) continue;
+            float dist = Vector3.Distance(transform.position, enemy.transform.position);
+            if (dist > r) continue;
 
-            if (Vector3.Distance(transform.position, go.transform.position) > Range) continue;
-
-            float enemyDistance = enemy.GetDistanceAlongPath();
-
-            if (enemyDistance < bestProgress)
+            // Higher score = better target
+            float score = targetMode switch
             {
-                bestProgress = enemyDistance;
+                TargetMode.First => -enemy.GetDistanceAlongPath(), // closest to HQ
+                TargetMode.Last => enemy.GetDistanceAlongPath(),
+                TargetMode.Strongest => enemy.Health,
+                _ => -dist, // Closest
+            };
+
+            if (score > bestScore)
+            {
+                bestScore = score;
                 best = enemy;
             }
-            // Debug.Log(bestProgress);
         }
         return best;
     }
 
-    void Shoot(EnemyController target)
+    private void Shoot(EnemyController target)
     {
         Rigidbody instance = Instantiate(projectile, transform.position, Quaternion.identity);
-        instance.GetComponent<ProjectileController>().Launch(target.transform, Damage, projectileSpeed, Piercing, AOERange, AOEDamage);
+        instance.GetComponent<ProjectileController>()
+                .Launch(target.transform, Damage, projectileSpeed, Piercing, AOERange, AOEDamage);
     }
 }

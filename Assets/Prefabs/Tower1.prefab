@@ -122,8 +122,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Tower 1
   icon: {fileID: 21300000, guid: e4ed59d553abc464f849475199affa7d, type: 3}
+  description: 
   range: 5
   damage: 1
+  piercing: 0
+  fireCooldown: 1
+  aoeRange: 0
+  aoeDamage: 0
+  targetMode: 0
   projectile: {fileID: 5388343719768564873, guid: 9287526bc28e34c499081047577accf7, type: 3}
   projectileSpeed: 20
   startCost: 5
+  flatPriceCount: 2
+  costGrowth: 2
+  sellRefund: 0.7
+  rangeRing: {fileID: 0}

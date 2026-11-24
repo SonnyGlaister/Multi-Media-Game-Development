@@ -121,6 +121,11 @@ public class GameController : MonoBehaviour
         return true;
     }
 
+    public void Refund(int amount)
+    {
+        if (amount > 0) SkillPoints += amount;
+    }
+
     // HQ
     public void EnemyReachedBase(EnemyDefinition definition)
     {

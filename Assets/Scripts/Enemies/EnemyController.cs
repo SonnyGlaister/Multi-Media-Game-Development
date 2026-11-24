@@ -16,6 +16,7 @@ public class EnemyController : MonoBehaviour
     public float RemainingDistance;
     public bool IsAlive { get; private set; } = true;
     public int MaxHealth => Definition != null ? Mathf.Max(1, Definition.maxHealth) : 1;
+    public int Health => health;
 
     private int health;
     private NavMeshAgent agent;
