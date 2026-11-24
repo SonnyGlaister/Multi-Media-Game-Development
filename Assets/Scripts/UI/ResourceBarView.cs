@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,15 +18,14 @@ public class ResourceBarView : MonoBehaviour
     public float countDuration = 0.35f;
 
     [Header("Feedback")]
-    [Tooltip("Full-screen Image, Raycast Target OFF. Sprite is generated if empty.")]
+    [Tooltip("Full-screen Image with the vignette sprite, Raycast Target OFF.")]
     public Image damageVignette;
     public float vignetteDuration = 0.6f;
 
     private GameController gc;
     private int lastSkillPoints;
     private int shownSkillPoints;
-    private Coroutine countCo, vignetteCo, healthShakeCo, skillPointsShakeCo, skillPointsFlashCo;
-    private Vector2 healthOrigin, skillPointsOrigin;
+    private Tween countTween;
 
     private void Start()
     {
@@ -33,12 +33,8 @@ public class ResourceBarView : MonoBehaviour
         UITheme t = UITheme.Current;
         GameStrings s = GameStrings.Current;
 
-        healthOrigin = healthGroup.anchoredPosition;
-        skillPointsOrigin = skillPointsGroup.anchoredPosition;
-
         if (damageVignette != null)
         {
-            if (damageVignette.sprite == null) damageVignette.sprite = RuntimeSprites.Vignette;
             damageVignette.raycastTarget = false;
             damageVignette.color = Color.clear;
         }
@@ -72,16 +68,18 @@ public class ResourceBarView : MonoBehaviour
         int delta = value - lastSkillPoints;
         lastSkillPoints = value;
 
-        if (countCo != null) StopCoroutine(countCo);
-        countCo = UITween.CountTo(this, shownSkillPoints, value, countDuration, v =>
+        // Count the number up/down
+        countTween?.Kill();
+        countTween = DOTween.To(() => shownSkillPoints, v =>
         {
             shownSkillPoints = v;
             skillPointsText.text = v.ToString();
-        });
+        }, value, countDuration).SetUpdate(true).SetLink(gameObject);
 
         if (delta > 0)
         {
-            UITween.Punch(this, skillPointsGroup, 0.08f, 0.2f);
+            skillPointsGroup.DOKill(true); // finish any running pop/shake first
+            skillPointsGroup.DOPunchScale(Vector3.one * 0.08f, 0.2f, 1, 0f).SetUpdate(true);
             if (FloatingTextPool.Instance != null)
                 FloatingTextPool.Instance.SpawnScreen($"+{delta}", UITheme.Current.skillPoints,
                     (Vector2)skillPointsText.rectTransform.position + new Vector2(0f, -30f), 0.8f);
@@ -91,10 +89,13 @@ public class ResourceBarView : MonoBehaviour
     private void OnPurchaseFailed(int cost)
     {
         UITheme t = UITheme.Current;
-        if (skillPointsFlashCo != null) StopCoroutine(skillPointsFlashCo);
-        skillPointsFlashCo = UITween.Flash(this, skillPointsText, t.danger, t.textPrimary, 0.4f);
-        if (skillPointsShakeCo != null) StopCoroutine(skillPointsShakeCo);
-        skillPointsShakeCo = UITween.Shake(this, skillPointsGroup, skillPointsOrigin, 6f, 0.25f);
+
+        skillPointsText.DOKill();
+        skillPointsText.color = t.danger;
+        skillPointsText.DOColor(t.textPrimary, 0.4f).SetUpdate(true);
+
+        skillPointsGroup.DOKill(true);
+        skillPointsGroup.DOShakeAnchorPos(0.25f, 6f, 20).SetUpdate(true);
     }
 
     private void OnHealth(int current, int max)
@@ -111,16 +112,16 @@ public class ResourceBarView : MonoBehaviour
         UITheme t = UITheme.Current;
         GameStrings s = GameStrings.Current;
 
-        if (healthShakeCo != null) StopCoroutine(healthShakeCo);
-        healthShakeCo = UITween.Shake(this, healthGroup, healthOrigin, 10f, 0.35f);
+        healthGroup.DOKill(true);
+        healthGroup.DOShakeAnchorPos(0.35f, 10f, 20).SetUpdate(true);
 
         if (damageVignette != null)
         {
             Color tint = who != null && who.faction != null ? Color.Lerp(t.danger, who.faction.color, 0.35f) : t.danger;
             tint.a = 0.55f;
-            Color clear = tint; clear.a = 0f;
-            if (vignetteCo != null) StopCoroutine(vignetteCo);
-            vignetteCo = UITween.Flash(this, damageVignette, tint, clear, vignetteDuration);
+            damageVignette.DOKill();
+            damageVignette.color = tint;
+            damageVignette.DOFade(0f, vignetteDuration).SetUpdate(true);
         }
 
         gc.ShowMessage(string.Format(s.baseHitFormat, who != null ? who.displayName : "?", s.baseName, damage), MessageType.Danger);

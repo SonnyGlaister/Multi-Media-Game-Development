@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class FactionPressureRow : MonoBehaviour
 {
@@ -18,13 +19,10 @@ public class FactionPressureRow : MonoBehaviour
 
     private FactionDefinition faction;
     private int lastPressure;
-    private Vector2 origin;
-    private Coroutine shakeCo, flashCo;
 
     public void Bind(FactionDefinition f)
     {
         faction = f;
-        origin = content.anchoredPosition;
         nameText.text = f.displayName;
         if (swatch != null) swatch.color = f.color;
         if (factionIcon != null)
@@ -59,11 +57,13 @@ public class FactionPressureRow : MonoBehaviour
         Image seg = bar != null ? bar.SegmentAt(Mathf.Min(pressure, faction.lockoutThreshold) - 1) : null;
         if (seg != null)
         {
-            if (flashCo != null) StopCoroutine(flashCo);
-            flashCo = UITween.Flash(this, seg, Color.white, seg.color, 0.4f);
+            Color settle = seg.color;
+            seg.DOKill();
+            seg.color = Color.white;
+            seg.DOColor(settle, 0.4f).SetUpdate(true);
         }
-        if (shakeCo != null) StopCoroutine(shakeCo);
-        shakeCo = UITween.Shake(this, content, origin, 6f, 0.3f);
+        content.DOKill(true);
+        content.DOShakeAnchorPos(0.3f, 6f, 20).SetUpdate(true);
 
         if (FloatingTextPool.Instance != null)
             FloatingTextPool.Instance.SpawnScreen("+1", faction.color, (Vector2)statusText.rectTransform.position, 0.8f);
@@ -72,7 +72,8 @@ public class FactionPressureRow : MonoBehaviour
     public void OnRevoked()
     {
         Refresh();
-        UITween.Punch(this, content, 0.1f, 0.35f);
+        content.DOKill(true);
+        content.DOPunchScale(Vector3.one * 0.1f, 0.35f, 1, 0f).SetUpdate(true);
     }
 
     public void Refresh()

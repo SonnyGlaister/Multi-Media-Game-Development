@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using DG.Tweening;
 
 // Victory/defeat modal with post-game stats/options.
 public class GameOverScreen : MonoBehaviour
@@ -68,11 +69,12 @@ public class GameOverScreen : MonoBehaviour
 
         group.blocksRaycasts = true;
         group.interactable = true;
-        StartCoroutine(UITween.Run(0.35f, e =>
+        group.DOFade(1f, 0.35f).SetUpdate(true);
+        if (card != null)
         {
-            group.alpha = e;
-            if (card != null) card.localScale = Vector3.one * Mathf.Lerp(0.85f, 1f, e);
-        }));
+            card.localScale = Vector3.one * 0.85f;
+            card.DOScale(1f, 0.35f).SetUpdate(true);
+        }
     }
 
     private static string NextLevelName()

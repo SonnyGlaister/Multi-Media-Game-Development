@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 // Bottom-left card before/between waves
 public class NextWaveCard : MonoBehaviour
@@ -22,7 +23,6 @@ public class NextWaveCard : MonoBehaviour
     private readonly List<CompositionChip> chips = new();
     private readonly List<(EnemyDefinition def, int count)> composition = new();
     private bool visible = true;
-    private Coroutine fadeCo;
 
     private void Start()
     {
@@ -89,7 +89,9 @@ public class NextWaveCard : MonoBehaviour
     {
         if (v == visible) return;
         visible = v;
-        if (fadeCo != null) StopCoroutine(fadeCo);
-        fadeCo = UITween.Fade(this, group, v ? 1f : 0f, 0.2f);
+        group.DOKill();
+        group.interactable = v;
+        group.blocksRaycasts = v;
+        group.DOFade(v ? 1f : 0f, 0.2f).SetUpdate(true);
     }
 }

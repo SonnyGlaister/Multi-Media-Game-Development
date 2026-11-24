@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class SkillTreeMenu : MonoBehaviour
 {
@@ -37,7 +38,6 @@ public class SkillTreeMenu : MonoBehaviour
     public bool IsOpen { get; private set; }
 
     private GameController gc;
-    private Coroutine moveCo, dimCo;
 
     private void Awake()
     {
@@ -70,13 +70,13 @@ public class SkillTreeMenu : MonoBehaviour
 
     private void OnSetupStarted(int wave)
     {
-        if (windowGroup.alpha < 1f) UITween.Fade(this, windowGroup, 1f);
+        if (windowGroup.alpha < 1f) Fade(windowGroup, true);
     }
 
     private void OnGameEnded(bool won)
     {
         Close();
-        UITween.Fade(this, windowGroup, 0f);
+        Fade(windowGroup, false);
     }
 
     private void Update()
@@ -99,13 +99,16 @@ public class SkillTreeMenu : MonoBehaviour
         expandButton.interactable = !open;
         SetContentInteractive(open);
 
-        if (dimCo != null) StopCoroutine(dimCo);
-        dimCo = UITween.Fade(this, backdrop, open ? 1f : 0f);
+        Fade(backdrop, open);
 
-        if (moveCo != null) StopCoroutine(moveCo);
-        Layout from = Capture(), to = open ? full : mini;
-        moveCo = StartCoroutine(UITween.Run(tweenTime, e => Apply(Lerp(from, to, e))));
-
+        // Slide/scale between the mini corner layout and the full centred layout
+        Layout to = open ? full : mini;
+        window.DOKill();
+        window.DOAnchorMin(to.anchor, tweenTime).SetUpdate(true);
+        window.DOAnchorMax(to.anchor, tweenTime).SetUpdate(true);
+        window.DOPivot(to.pivot, tweenTime).SetUpdate(true);
+        window.DOAnchorPos(to.position, tweenTime).SetUpdate(true);
+        window.DOScale(to.scale, tweenTime).SetUpdate(true);
         OpenChanged?.Invoke(open);
     }
 
@@ -124,13 +127,13 @@ public class SkillTreeMenu : MonoBehaviour
         g.blocksRaycasts = on;
     }
 
-    private Layout Capture() => new Layout
+    private static void Fade(CanvasGroup g, bool on, float duration = 0.18f)
     {
-        anchor = window.anchorMin,
-        pivot = window.pivot,
-        position = window.anchoredPosition,
-        scale = window.localScale.x
-    };
+        g.DOKill();
+        g.interactable = on;
+        g.blocksRaycasts = on;
+        g.DOFade(on ? 1f : 0f, duration).SetUpdate(true);
+    }
 
     private void Apply(Layout l)
     {
@@ -139,12 +142,4 @@ public class SkillTreeMenu : MonoBehaviour
         window.anchoredPosition = l.position;
         window.localScale = Vector3.one * l.scale;
     }
-
-    private static Layout Lerp(Layout a, Layout b, float t) => new Layout
-    {
-        anchor = Vector2.Lerp(a.anchor, b.anchor, t),
-        pivot = Vector2.Lerp(a.pivot, b.pivot, t),
-        position = Vector2.Lerp(a.position, b.position, t),
-        scale = Mathf.Lerp(a.scale, b.scale, t)
-    };
 }
