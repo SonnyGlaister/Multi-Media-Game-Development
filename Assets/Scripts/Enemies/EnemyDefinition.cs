@@ -27,6 +27,10 @@ public class EnemyDefinition : ScriptableObject
     public string tierLabel = "";
     public Sprite icon;
     [TextArea] public string description = "";
+    [Header("Spawning")]
+    public int appearWave;
+    public int minGroupSize;
+    public int maxGroupSize;
 
     public Color Tint => useFactionColor && faction != null ? faction.color : customColor;
 }

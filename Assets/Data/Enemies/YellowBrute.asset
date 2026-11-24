@@ -14,12 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Brute
   faction: {fileID: 11400000, guid: 09baa66b82ece4bc5bb7d10a019d97c4, type: 2}
-  maxHealth: 5
+  maxHealth: 6
   speed: 1.5
   reward: 2
   damageToBase: 2
   pressurePerHit: 1
+  difficulty: 2
   scale: 1
   useFactionColor: 1
   customColor: {r: 1, g: 1, b: 1, a: 1}
   modelPrefab: {fileID: 0}
+  tier: 1
+  tierLabel: 
+  icon: {fileID: 0}
+  description: 
