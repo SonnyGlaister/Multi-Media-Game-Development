@@ -6,7 +6,6 @@ using System.Collections.Generic;
 public class EnemySpawner : MonoBehaviour
 {
     public EnemyController enemyPrefab;
-    public EnemySpawnBlockDefinition[] spawnBlocks;
     public int waveNum { get; private set; }
 
     private GameObject baseTarget;
@@ -22,21 +21,20 @@ public class EnemySpawner : MonoBehaviour
     public float SetupTimeRemaining { get; private set; }
 
     // GameController info
-    // public int WaveCount => waves.Length;
     public int WaveCount = 10;
     public float SetupDuration;
-    // public float SetupDuration => waves[waveNum].startTime;
     public int TotalThisWave { get; private set; }
     public int SpawnedThisWave { get; private set; }
-
-    // Distinct enemy types across all waves
-    public EnemyDefinition[] enemyTypes =>
-        spawnBlocks
-            .Where (bl => bl != null && bl.enemyType != null)
-            .Select(bl => bl.enemyType)
-            .Distinct()
-            .ToArray();
     private float difficultyBudget;
+    public EnemyDefinition[] enemyTypes;
+    
+    private class EnemyGroup
+    {
+        public EnemyDefinition enemy;
+        public int groupSize;
+        public float groupCost;
+        public float amountSpentOnFaction;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -71,15 +69,14 @@ public class EnemySpawner : MonoBehaviour
 
     public void ResetSpawner()
     {
-        waveNum = GameController.Instance.currentWave;
+        waveNum = GameController.Instance.currentWave + 1;
         spawnedBlockTotal = 0;
         SpawnedThisWave = 0;
-        difficultyBudget = GetWaveDifficulty(waveNum);
-        // enemies = GetWaveSpawnBlocksRandom(difficultyBudget);
-        // enemies = GetWaveSpawnBlocksSmart(difficultyBudget);
+        difficultyBudget = GetWaveDifficulty(waveNum - 1);
         enemies = GetWaveEnemies(difficultyBudget);
         blockTotal = enemies.Length;
         TotalThisWave = enemies.Length;
+        SetupTimeRemaining = SetupDuration;
     }
 
     public float SkipSetup()
@@ -120,29 +117,6 @@ public class EnemySpawner : MonoBehaviour
         return false;
 
     }
-
-
-    // IEnumerator allows the method to return pauses for n amount of time. SpawnEnemies calls method SpawnEnemy on all enemies in block.
-    // IEnumerator SpawnEnemies()
-    // {
-    //     spawning = true; //Indicate that spawning has started so that we don't make more coroutines
-    //     // For all blocks
-
-    //     for (int i = 0; i < enemies.Length; i++)
-    //     {
-    //         // Spawn the enemy type of the current block for the amount specified. Call for delay betwwen spawns
-    //         SpawnEnemy(enemies[i].enemyType);
-    //         for (int j = 1; j< enemies[i].enemyAmount; j++)
-    //         {
-    //             yield return new WaitForSeconds(enemies[i].delayBetween);
-    //             SpawnEnemy(enemies[i].enemyType);
-    //         }
-    //         // Track total spawned blocks and incur delay between spawn groups
-    //         spawnedBlockTotal += 1;
-    //         yield return new WaitForSeconds(enemies[i].delayAfterGroup);
-    //     }
-    //     spawning = false;
-    // }
     IEnumerator SpawnEnemies()
     {
         spawning = true; //Indicate that spawning has started so that we don't make more coroutines
@@ -156,7 +130,6 @@ public class EnemySpawner : MonoBehaviour
         }
         spawning = false;
     }
-
 
     // Spawn enemy of type e
     private void SpawnEnemy(EnemyDefinition e)
@@ -189,97 +162,12 @@ public class EnemySpawner : MonoBehaviour
         return GetEnemyDifficultyCost(block.enemyType) * block.enemyAmount;
     }
 
-    private EnemySpawnBlockDefinition[] GetWaveSpawnBlocksRandom(float difficultyBudget)
+    private int GetGroupSize(EnemyDefinition enemy)
     {
-        List<EnemySpawnBlockDefinition> generatedBlocks = new List<EnemySpawnBlockDefinition>();
+        if (WaveCount <= 1) return enemy.maxGroupSize;
 
-        // Copying into new list so we can get rid of bad ones, not filtering out too expensive ones yet
-        var availableBlocks = spawnBlocks
-            .Where(bl => bl != null && bl.enemyType != null && bl.enemyAmount > 0)
-            .Select(bl => new
-            {
-                block = bl,
-                cost = GetSpawnBlockCost(bl)
-            })
-            .ToList();
-
-        float remainingBudget = difficultyBudget;
-
-        while (availableBlocks.Count > 0)
-        {
-            var affordableBlocks = availableBlocks
-            .Where(bl => bl.cost <= remainingBudget)
-            .ToList();
-
-            if (affordableBlocks.Count == 0)
-            {
-                Debug.Log("No available blocks to spawn");
-                break;
-            }
-
-            var selected = affordableBlocks[
-                Random.Range(0, affordableBlocks.Count)
-            ];
-
-            generatedBlocks.Add(selected.block);
-
-            remainingBudget -= selected.cost;
-        }
-        // float totalCost = generatedBlocks.Sum(b => GetSpawnBlockCost(b));
-        // Debug.Log($"Wave: {waveNum + 1}");
-        // Debug.Log($"Difficulty budget: {difficultyBudget}");
-        // Debug.Log($"Difficulty spent: {totalCost}");
-        // Debug.Log($"Remaining budget: {difficultyBudget - totalCost}");
-        // Debug.Log($"Generated blocks: {generatedBlocks.Count}");
-
-        return generatedBlocks.ToArray();
-    }
-
-
-    // Always goes for most difficult block and organises them in ascending difficulty
-    private EnemySpawnBlockDefinition[] GetWaveSpawnBlocksSmart(float difficultyBudget)
-    {
-        List<EnemySpawnBlockDefinition> generatedBlocks = new List<EnemySpawnBlockDefinition>();
-
-        // Copying into new list so we can get rid of bad ones, not filtering out too expensive ones yet
-        var availableBlocks = spawnBlocks
-            .Where(bl => bl != null && bl.enemyType != null && bl.enemyAmount > 0)
-            .Select(bl => new
-            {
-                block = bl,
-                cost = GetSpawnBlockCost(bl)
-            })
-            .OrderByDescending(bl => bl.cost)
-            .ToList();
-
-        float remainingBudget = difficultyBudget;
-
-        while (availableBlocks.Count > 0)
-        {
-            var selected = availableBlocks.FirstOrDefault(bl => bl.cost <= remainingBudget);
-
-            if (selected == null)
-            {
-                Debug.Log("No available blocks to spawn");
-                break;
-            }
-
-            generatedBlocks.Add(selected.block);
-
-            remainingBudget -= selected.cost;
-        }
-
-        generatedBlocks.Reverse();
-
-        return generatedBlocks.ToArray();
-    }
-
-    private class EnemyGroup
-    {
-        public EnemyDefinition enemy;
-        public int groupSize;
-        public float groupCost;
-        public float amountSpentOnFaction;
+        float progress = Mathf.Clamp01((float)(waveNum - 1) / (WaveCount - 1));
+        return Mathf.RoundToInt(Mathf.Lerp(enemy.minGroupSize, enemy.maxGroupSize, progress));
     }
 
     private EnemyDefinition[] GetWaveEnemies(float difficultyBudget)
@@ -309,7 +197,7 @@ public class EnemySpawner : MonoBehaviour
                 .ToList();
             if (affordableEnemies.Count == 0)
             {
-                // Find max spawnable enemies within budget here
+                // TODO: Find max spawnable enemies within budget here so it's not just like same enemies 3 rounds in a row early game
                 break;
             }
             var selected = affordableEnemies[Random.Range(0, affordableEnemies.Count)];
@@ -324,18 +212,6 @@ public class EnemySpawner : MonoBehaviour
         }
 
         return generatedEnemies.ToArray();
-    }
-
-            //     var selected = affordableBlocks[
-            //     Random.Range(0, affordableBlocks.Count)
-            // ];
-
-    private int GetGroupSize(EnemyDefinition enemy)
-    {
-        if (WaveCount <= 1) return enemy.maxGroupSize;
-
-        float progress = (float)(waveNum - 1) / (WaveCount - 1);
-        return Mathf.RoundToInt(Mathf.Lerp(enemy.minGroupSize, enemy.maxGroupSize, progress));
     }
 }
     
