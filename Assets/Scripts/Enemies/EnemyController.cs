@@ -18,7 +18,13 @@ public class EnemyController : MonoBehaviour
     public int MaxHealth => Definition != null ? Mathf.Max(1, Definition.maxHealth) : 1;
 
     private int health;
-    private NavMeshAgent agent;
+    public NavMeshAgent agent;
+
+    // Event trigger when enemy dies
+    public event System.Action<EnemyController> Died;
+
+    // Event trigger when enemy spawns
+    public event System.Action<EnemyController> Spawned;
 
     private void Awake()
     {
@@ -46,6 +52,20 @@ public class EnemyController : MonoBehaviour
         {
             bodyRenderer.material.color = definition.Tint;
         }
+
+        // Applying additional attributes
+
+        if (definition.specialAttributes != null)
+        {
+            foreach (EnemyAttributeDefinition attribute in definition.specialAttributes)
+            {
+                if (attribute != null)
+                {
+                    attribute.ApplyTo(this);
+                }
+            }
+        }
+        Spawned?.Invoke(this);
     }
 
     private void Update()
@@ -53,7 +73,7 @@ public class EnemyController : MonoBehaviour
         if (!IsAlive || agent == null) return;
         if (!agent.isOnNavMesh) return;
         if (agent.pathPending || !agent.hasPath) return;
-
+        Debug.Log("Current position: " + transform.localPosition);
         RemainingDistance = agent.remainingDistance;
         if (RemainingDistance <= agent.stoppingDistance)
         {
@@ -72,6 +92,8 @@ public class EnemyController : MonoBehaviour
         if (health <= 0)
         {
             IsAlive = false;
+            // On death, call listeners to trigger appropriate methods
+            Died?.Invoke(this);
             GameController.Instance.EnemyKilled(this);
             Destroy(gameObject);
         }
@@ -81,6 +103,8 @@ public class EnemyController : MonoBehaviour
     {
         if (!IsAlive) return;
         IsAlive = false;
+        // Reach end invokes death too
+        Died?.Invoke(this);
         GameController.Instance.EnemyReachedBase(Definition);
         Destroy(gameObject);
     }

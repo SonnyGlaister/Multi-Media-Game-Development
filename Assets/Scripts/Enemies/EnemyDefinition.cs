@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System.Collections.Generic; //Added for list
 // A model by an AI company.
 [CreateAssetMenu(menuName = "Game/Enemy")]
 public class EnemyDefinition : ScriptableObject
@@ -26,6 +26,10 @@ public class EnemyDefinition : ScriptableObject
     [Tooltip("Short label for previews, e.g. S, M, L, XL or a model-size name.")]
     public string tierLabel = "";
     public Sprite icon;
+
+    [Header("Special Attributes")]
+    public List<EnemyAttributeDefinition> specialAttributes = new();
+
     [TextArea] public string description = "";
 
     public Color Tint => useFactionColor && faction != null ? faction.color : customColor;

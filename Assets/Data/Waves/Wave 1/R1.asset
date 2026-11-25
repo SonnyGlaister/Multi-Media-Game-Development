@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960ded0375504d0438f32a4bbbd1b251, type: 3}
   m_Name: R1
   m_EditorClassIdentifier: 
-  enemyType: {fileID: 11400000, guid: 0c59c052e1b5d4d34908c00f524be831, type: 2}
-  enemyAmount: 10
+  enemyType: {fileID: 11400000, guid: 4160faa7c32c6ca448895f05ff8db337, type: 2}
+  enemyAmount: 5
   delayBetween: 0.5
   delayAfterGroup: 0
