@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5768018563494551701}
   - component: {fileID: 6838249194819605554}
+  - component: {fileID: 4005944679794679294}
   m_Layer: 0
   m_Name: TowerSystems
   m_TagString: Untagged
@@ -44,14 +45,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce139965e1d634a34bd94fee6d457d58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  towerPrefabs:
-  - {fileID: 3326678060674245893, guid: 5d691014158fe4161b5b43821e302c1f, type: 3}
-  - {fileID: 3326678060674245893, guid: ed3710d1062870149ba59803d531f87e, type: 3}
+  towers:
+  - {fileID: 11400000, guid: b0eda6c2bce47485693468fcf1025843, type: 2}
   baseObject: {fileID: 0}
   ground: {fileID: 0}
   minPathDist: 0.55
   minTowerDist: 0.75
   minBaseDist: 0.75
-  ghostValidMaterial: {fileID: 0}
-  ghostInvalidMaterial: {fileID: 0}
-  noBuildDiscPrefab: {fileID: 0}
+  ghostValidMaterial: {fileID: 2100000, guid: 956b38a6ba4cf41e8958f30f4f986bba, type: 2}
+  ghostInvalidMaterial: {fileID: 2100000, guid: 3db6bdf82da184a839b61c90f496fce9, type: 2}
+  noBuildDiscPrefab: {fileID: 196353848368339687, guid: 3b8a267aa79424bd9ae2ce7bc5896f34, type: 3}
+--- !u!114 &4005944679794679294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 404388520475771931}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4002872a6e3274fd78993f67fa9d6aaf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  towerLayers:
+    serializedVersion: 2
+    m_Bits: 256

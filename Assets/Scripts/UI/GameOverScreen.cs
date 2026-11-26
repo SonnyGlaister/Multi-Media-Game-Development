@@ -53,15 +53,12 @@ public class GameOverScreen : MonoBehaviour
         statsText.text =
             Line("AI models stopped", st.enemiesKilled) + "\n" +
             Line($"{s.skillPointsName} earned", st.skillPointsEarned) + "\n" +
-            Line($"{s.skillPointsName} spent", st.skillPointsSpent) + "\n" +
-            Line("Research completed", st.perksBought) + "\n" +
-            Line("Research acquired by AI", st.perksLost);
+            Line($"{s.skillPointsName} spent", st.skillPointsSpent) + "\n";
 
         StringBuilder sb = new();
         foreach (FactionDefinition f in gc.Factions)
         {
-            int lost = PerkManager.Instance != null ? PerkManager.Instance.LostCount(f) : 0;
-            sb.Append($"<color=#{UITheme.Hex(f.color)}><b>{f.displayName}</b></color><pos=55%>{gc.GetTotalHits(f)} breaches<pos=80%>{lost} acquired\n");
+            sb.Append($"<color=#{UITheme.Hex(f.color)}><b>{f.displayName}</b></color><pos=70%>{gc.GetTotalHits(f)} breaches\n");
         }
         factionText.text = sb.ToString();
 

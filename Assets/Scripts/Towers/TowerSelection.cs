@@ -66,7 +66,6 @@ public class TowerSelection : MonoBehaviour
         if (Selected == null) return;
         Selected.HideRange();
         Selected = null;
-        if (PathPreview.Instance != null) PathPreview.Instance.HideCoverage();
     }
 
     private void SetHovered(TowerController tower)
@@ -82,8 +81,9 @@ public class TowerSelection : MonoBehaviour
 
         hovered.ShowRange(UITheme.Current.hoverRange);
         if (TooltipManager.Instance != null)
-            TooltipManager.Instance.Show(this, hovered.displayName,
-                string.Format(GameStrings.Current.towerHoverFormat, hovered.DamagePerSecond));
+            TooltipManager.Instance.Show(this, hovered.DisplayName,
+                string.Format(GameStrings.Current.towerHoverHint, hovered.Definition.displayName, hovered.Tier),
+                hovered.Definition.color);
     }
 
     private TowerController TowerUnderMouse()

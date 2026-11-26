@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -29,7 +30,6 @@ public class EnemyController : MonoBehaviour
     private void OnEnable() => Alive.Add(this);
     private void OnDisable() => Alive.Remove(this);
 
-    // Called by the spawner right after Instantiate
     public void Init(EnemyDefinition definition)
     {
         Definition = definition;
@@ -53,6 +53,7 @@ public class EnemyController : MonoBehaviour
     {
         if (!IsAlive || agent == null) return;
         if (!agent.isOnNavMesh) return;
+
         if (agent.pathPending || !agent.hasPath) return;
 
         RemainingDistance = agent.remainingDistance;
@@ -95,7 +96,20 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    // Remaining path distance to HQ (smaller --> closer)
+    public static List<EnemyController> InRadius(Vector3 center, float radius)
+    {
+        List<EnemyController> found = new();
+        foreach (EnemyController e in Alive)
+        {
+            if (!e.IsAlive) continue;
+            Vector3 d = e.transform.position - center;
+            d.y = 0f;
+            if (d.sqrMagnitude <= radius * radius) found.Add(e);
+        }
+        return found;
+    }
+
+    // Remaining path distance to HQ (smaller = closer)
     public float GetDistanceAlongPath()
     {
         Vector3[] corners = agent.path.corners;

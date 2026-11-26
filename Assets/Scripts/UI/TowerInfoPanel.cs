@@ -5,12 +5,15 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Tier, stats, targeting, sell
 public class TowerInfoPanel : MonoBehaviour
 {
     public RectTransform panel;
     public CanvasGroup group;
     public Image icon;
     public TextMeshProUGUI nameText;
+    [Tooltip("e.g. 'Physical · Tier 2', in the faction colour.")]
+    public TextMeshProUGUI tierText;
     public TextMeshProUGUI statsText;
     public TMP_Dropdown targetingDropdown;
     public Button sellButton;
@@ -62,11 +65,7 @@ public class TowerInfoPanel : MonoBehaviour
         SetVisible(t != null);
         if (t == null) return;
 
-        icon.sprite = t.icon;
-        icon.enabled = t.icon != null;
-        nameText.text = t.displayName;
         targetingDropdown.SetValueWithoutNotify((int)t.targetMode);
-
         panel.DOKill(true);
         panel.DOPunchScale(Vector3.one * 0.06f, 0.18f, 1, 0f).SetUpdate(true);
     }
@@ -74,7 +73,22 @@ public class TowerInfoPanel : MonoBehaviour
     private void Refresh()
     {
         GameStrings s = GameStrings.Current;
+        TowerTier data = tower.TierData;
+
+        icon.sprite = data.icon;
+        icon.enabled = data.icon != null;
+        nameText.text = data.name;
+        if (tierText != null)
+        {
+            tierText.text = $"{tower.Definition.displayName}  ·  {string.Format(s.tierFormat, tower.Tier)}";
+            tierText.color = tower.Definition.color;
+        }
         statsText.text = tower.StatsText();
+
+        bool usesTargeting = tower.Attack == null || tower.Attack.UsesTargeting;
+        if (targetingDropdown.gameObject.activeSelf != usesTargeting)
+            targetingDropdown.gameObject.SetActive(usesTargeting);
+
         bool confirming = Time.unscaledTime < confirmUntil;
         sellLabel.text = string.Format(confirming ? s.sellConfirmFormat : s.sellFormat, tower.SellValue);
     }

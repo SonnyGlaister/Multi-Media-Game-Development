@@ -23,12 +23,12 @@ public class TowerDrawer : MonoBehaviour
     {
         expandedY = drawer.anchoredPosition.y;
 
-        foreach (TowerController prefab in TowerPlacer.Instance.towerPrefabs)
+        foreach (TowerDefinition tower in TowerPlacer.Instance.towers)
         {
-            if (prefab == null) continue;
+            if (tower == null) continue;
             TowerCard card = Instantiate(cardTemplate, cardParent);
             card.gameObject.SetActive(true);
-            card.Setup(prefab, cards.Count + 1);
+            card.Setup(tower, cards.Count + 1);
             cards.Add(card);
         }
 

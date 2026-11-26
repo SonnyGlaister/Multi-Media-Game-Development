@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
 public class PerkButton : MonoBehaviour
 {
@@ -15,96 +14,82 @@ public class PerkButton : MonoBehaviour
     // Label is probably going to be deprecated
     public TextMeshProUGUI label;
 
-    private bool hidePerkButton;
-    private FactionDefinition faction;
-    private int tier;
-    private PerkDefinition perk;
-
     public Image textBox;
     public TextMeshProUGUI description;
 
-    public void Setup(FactionDefinition f, int t)
+    private TowerDefinition tower;
+    private int index;
+    private PerkDefinition perk;
+
+    public void Setup(TowerDefinition t, int i)
     {
-        faction = f;
-        tier = t;
-        perk = f.perks[t];
+        tower = t;
+        index = i;
+        perk = t.perks[i];
         name = perk.name;
-        button.onClick.AddListener(() => PerkManager.Instance.TryBuy(faction, tier));
+        button.onClick.AddListener(() => PerkManager.Instance.TryBuy(tower, index));
     }
 
     void Update()
     {
         if (perk == null) return;
+        PerkManager pm = PerkManager.Instance;
 
         button.image.sprite = perk.image;
-        PerkState state = PerkManager.Instance.GetState(faction, tier);
-        button.interactable = state == PerkState.Available;
-        label.text = $"{perk.displayName} ({perk.cost})";
-        description.text = $"<b>{perk.displayName}</b>\n {perk.cost} skill points\n\n {perk.description}";
         textBox.sprite = perk.textBoxImage;
+        label.text = $"{perk.displayName} ({perk.cost})";
 
-        // We check if the grandparent's state is bought because that is more specific than checking if the parent needs previous
-        PerkState grandParentState = PerkManager.Instance.GetState(faction, tier - 2);
-        PerkState parentState = PerkManager.Instance.GetState(faction, tier - 1);
+        PerkState state = pm.GetState(tower, index);
+        button.interactable = state == PerkState.Available;
 
-        hidePerkButton = (tier >= 2 && grandParentState != PerkState.Owned) || (tier >= 1 && parentState == PerkState.LockedOut);
-        description.text = GetTextboxText(hidePerkButton ? PerkState.Hidden : state );
+        // Only show up to two steps past what you own, and nothing past a perk the AI took
+        bool hide = pm.GetState(tower, index - 2) != PerkState.Owned
+                 || pm.GetState(tower, index - 1) == PerkState.Revoked;
 
-        if (hidePerkButton)
-        {
-            background.enabled = false;
-            overlay.enabled = false;
-
-            return;
-        } else
-        {
-            background.enabled = true;
-            overlay.enabled = true;
-        }
+        description.text = GetTextboxText(hide ? PerkState.Hidden : state);
+        background.enabled = !hide;
+        overlay.enabled = !hide;
+        if (hide) return;
 
         switch (state)
         {
-            case PerkState.Available:
-                overlay.enabled = false;
-                break;
             case PerkState.Owned:
-                overlay.enabled = true;
                 overlay.sprite = ownedSprite;
                 break;
-            case PerkState.LockedOut:
             case PerkState.Revoked:
-                overlay.enabled = true;
                 overlay.sprite = lockedSprite;
                 break;
             case PerkState.CantAfford:
-                overlay.enabled = true;
                 overlay.sprite = cannotAffordSprite;
                 break;
             case PerkState.NeedsPrevious:
-                overlay.enabled = true;
                 overlay.sprite = prerequisiteRequiredSprite;
                 break;
-            default: // CantAfford, NeedsPrevious
+            default: // Available
                 overlay.enabled = false;
                 break;
         }
     }
 
-    string GetTextboxText (PerkState state)
+    string GetTextboxText(PerkState state)
     {
-        string costText = state == PerkState.CantAfford
-        ? $"{perk.cost} gold\n<b>CANNOT AFFORD</b>"
-        :$"{perk.cost} gold";
+        GameStrings s = GameStrings.Current;
+        string cost = $"{perk.cost} {s.skillPointsName}";
+        if (state == PerkState.CantAfford) cost += "\n<b>CANNOT AFFORD</b>";
+        string tierLine = perk.unlocksTier > 0
+            ? "\n<b>" + string.Format(s.unlocksTierFormat, tower.displayName, tower.GetTier(perk.unlocksTier).name) + "</b>"
+            : "";
+
         switch (state)
         {
             case PerkState.Hidden:
                 return null;
             case PerkState.NeedsPrevious:
-                return $"<b>???</b>\nNeeds Previous Perk";
-            case PerkState.LockedOut:
-                return $"<b>Revoked</b>\nThis path has been blocked";
+                return "<b>???</b>\nNeeds previous perk";
+            case PerkState.Revoked:
+                return $"<b>{perk.displayName}</b>\n{s.perkTakenLabel}";
             default:
-                return $"<b>{perk.displayName}</b>\n{costText}\n\n{perk.description}";
+                return $"<b>{perk.displayName}</b>\n{cost}{tierLine}\n\n{perk.description}";
         }
     }
 }

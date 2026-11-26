@@ -13,28 +13,34 @@ public class GameController : MonoBehaviour
     public int startingBaseHealth = 3;
     [Tooltip("Waves to play. 0 = every wave defined in the spawner (capped at that number either way).")]
     public int totalWaves = 2;
-    [Tooltip("Skill points per second of setup time skipped with 'Call now'. 0 = no bonus.")]
-    public float earlyCallSkillPointsPerSecond = 0f;
+
+    [Header("AI pressure")]
+    [Tooltip("When pressure reaches this, the AI takes your most recent skill.")]
+    public float pressureLimit = 5f;
+    [Tooltip("After the AI takes a skill, pressure drops back to this fraction of the limit.")]
+    [Range(0f, 1f)] public float pressureAfterRevoke = 0.75f;
+    [Tooltip("Pressure that fades per second while the level is running.")]
+    public float pressureDecayPerSecond = 0.05f;
 
     [Header("References")]
     public EnemySpawner spawner;
 
     // Events
-    public event Action<int> SkillPointsChanged; // new amount
-    public event Action<int> PurchaseFailed; // unpaid cost
-    public event Action<int, int> BaseHealthChanged; // current, max
-    public event Action<EnemyDefinition, int> BaseHit; // enemy, damage
-    public event Action<FactionDefinition, int> PressureChanged; // faction, new pressure
-    public event Action<int> SetupStarted; // wave index
-    public event Action<int> WaveStarted; // wave index
-    public event Action<bool> GameEnded; // won?
+    public event Action<int> SkillPointsChanged;
+    public event Action<int> PurchaseFailed;
+    public event Action<int, int> BaseHealthChanged;
+    public event Action<EnemyDefinition, int> BaseHit;
+    public event Action<float> PressureAdded;
+    public event Action PressureMaxed;
+    public event Action<int> SetupStarted;
+    public event Action<int> WaveStarted;
+    public event Action<bool> GameEnded;
     public event Action<string, MessageType> MessageRequested;
 
     public FactionDefinition[] Factions { get; private set; }
     public GameStats Stats { get; } = new GameStats();
 
     private readonly Dictionary<FactionDefinition, int> totalHits = new();
-    private readonly Dictionary<FactionDefinition, int> pressure = new();
 
     private int skillPoints;
     public int SkillPoints
@@ -42,6 +48,9 @@ public class GameController : MonoBehaviour
         get => skillPoints;
         private set { skillPoints = value; SkillPointsChanged?.Invoke(skillPoints); }
     }
+
+    public float Pressure { get; private set; }
+    public float Pressure01 => pressureLimit > 0f ? Mathf.Clamp01(Pressure / pressureLimit) : 0f;
 
     public int BaseHealth { get; private set; }
     public int MaxBaseHealth => startingBaseHealth;
@@ -80,19 +89,29 @@ public class GameController : MonoBehaviour
 
     private void Update()
     {
-        if (IsGameOver || !HasWaveStarted) return;
-        CheckWaveEnd();
+        if (IsGameOver || !HasGameStarted) return;
+
+        if (Pressure > 0f)
+            Pressure = Mathf.Max(0f, Pressure - pressureDecayPerSecond * Time.deltaTime);
+
+        if (HasWaveStarted) CheckWaveEnd();
     }
 
-    // Factions
+    // AI companies (end screen)
     public int GetTotalHits(FactionDefinition f) => f != null && totalHits.TryGetValue(f, out int v) ? v : 0;
-    public int GetPressure(FactionDefinition f) => f != null && pressure.TryGetValue(f, out int v) ? v : 0;
-    public bool IsLockedOut(FactionDefinition f) => f != null && GetPressure(f) >= f.lockoutThreshold;
 
-    public void ReducePressure(FactionDefinition f, int amount)
+    // AI pressure
+    public void AddPressure(float amount)
     {
-        pressure[f] = Mathf.Max(0, GetPressure(f) - amount);
-        PressureChanged?.Invoke(f, pressure[f]);
+        if (amount <= 0f || IsGameOver) return;
+        Pressure += amount;
+        PressureAdded?.Invoke(amount);
+
+        if (Pressure >= pressureLimit)
+        {
+            Pressure = pressureLimit * pressureAfterRevoke;
+            PressureMaxed?.Invoke();
+        }
     }
 
     // Economy
@@ -107,7 +126,6 @@ public class GameController : MonoBehaviour
 
     public bool CanAfford(int cost) => SkillPoints >= cost;
 
-    // Spends skill points if affordable
     public bool Purchase(int cost)
     {
         if (IsGameOver) return false;
@@ -135,12 +153,8 @@ public class GameController : MonoBehaviour
         BaseHit?.Invoke(definition, definition.damageToBase);
 
         FactionDefinition f = definition.faction;
-        if (f != null)
-        {
-            totalHits[f] = GetTotalHits(f) + 1;
-            pressure[f] = GetPressure(f) + definition.pressurePerHit;
-            PressureChanged?.Invoke(f, pressure[f]);
-        }
+        if (f != null) totalHits[f] = GetTotalHits(f) + 1;
+        AddPressure(definition.pressurePerHit);
 
         if (BaseHealth <= 0) EndGame(false);
     }
@@ -157,30 +171,12 @@ public class GameController : MonoBehaviour
         SetupStarted?.Invoke(currentWave);
     }
 
-    // Called by the spawner when the setup countdown ends
     public void StartWave()
     {
         if (HasWaveStarted) return;
         HasWaveStarted = true;
         WaveStarted?.Invoke(currentWave);
     }
-
-    // Skips the remaining setup time, with an optional bonus
-    public void CallWaveEarly()
-    {
-        if (!HasGameStarted || HasWaveStarted || IsGameOver || spawner == null) return;
-        float skipped = spawner.SkipSetup();
-        int bonus = Mathf.FloorToInt(skipped * earlyCallSkillPointsPerSecond);
-        if (bonus > 0)
-        {
-            Stats.skillPointsEarned += bonus;
-            SkillPoints += bonus;
-            ShowMessage(string.Format(GameStrings.Current.earlyBonusFormat, bonus, GameStrings.Current.skillPointsName), MessageType.Success);
-        }
-    }
-
-    public int EarlyCallBonusPreview =>
-        spawner == null ? 0 : Mathf.FloorToInt(spawner.SetupTimeRemaining * earlyCallSkillPointsPerSecond);
 
     private void CheckWaveEnd()
     {

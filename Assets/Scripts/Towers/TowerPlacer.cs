@@ -9,8 +9,8 @@ public class TowerPlacer : MonoBehaviour
 
     public static TowerPlacer Instance { get; private set; }
 
-    [Header("Towers (the build drawer shows these, in this order)")]
-    public TowerController[] towerPrefabs;
+    [Header("Towers (build drawer + skill tree branches use this order)")]
+    public TowerDefinition[] towers;
 
     [Header("Scene")]
     [Tooltip("HQ. Found by the 'Base' tag if empty.")]
@@ -32,8 +32,7 @@ public class TowerPlacer : MonoBehaviour
 
     public Mode CurrentMode { get; private set; }
     public bool IsPlacing => CurrentMode != Mode.None;
-    public TowerController Pending { get; private set; }
-    // Lets TowerSelection ignore the click that placed a tower
+    public TowerDefinition Pending { get; private set; }
     public int LastPlacementFrame { get; private set; } = -1;
 
     private Camera cam;
@@ -41,7 +40,7 @@ public class TowerPlacer : MonoBehaviour
     private TowerController ghostTower;
     private MeshRenderer[] ghostRenderers;
     private bool? ghostValid;
-    private readonly Dictionary<TowerController, int> placedCount = new();
+    private readonly Dictionary<TowerDefinition, int> placedCount = new();
     private readonly List<SpriteRenderer> noBuildDiscs = new();
 
     private void Awake()
@@ -57,13 +56,13 @@ public class TowerPlacer : MonoBehaviour
     }
 
     // Cost
-    public int PlacedCount(TowerController prefab) => placedCount.TryGetValue(prefab, out int n) ? n : 0;
-    public int CostOf(TowerController prefab) => prefab.CostFor(PlacedCount(prefab));
-    public int NextCostOf(TowerController prefab) => prefab.CostFor(PlacedCount(prefab) + 1);
+    public int PlacedCount(TowerDefinition tower) => placedCount.TryGetValue(tower, out int n) ? n : 0;
+    public int CostOf(TowerDefinition tower) => tower.CostFor(PlacedCount(tower));
+    public int NextCostOf(TowerDefinition tower) => tower.CostFor(PlacedCount(tower) + 1);
 
-    public void OnTowerSold(TowerController prefab)
+    public void OnTowerSold(TowerDefinition tower)
     {
-        if (prefab != null && PlacedCount(prefab) > 0) placedCount[prefab]--;
+        if (tower != null && PlacedCount(tower) > 0) placedCount[tower]--;
     }
 
     public bool CanPlace()
@@ -94,15 +93,15 @@ public class TowerPlacer : MonoBehaviour
     }
 
     // TowerCard functions
-    public void BeginPlacement(TowerController prefab, Mode mode)
+    public void BeginPlacement(TowerDefinition tower, Mode mode)
     {
-        if (prefab == null || mode == Mode.None || !CanPlace()) return;
+        if (tower == null || tower.prefab == null || mode == Mode.None || !CanPlace()) return;
         Cancel();
         if (TowerSelection.Instance != null) TowerSelection.Instance.Deselect();
 
-        Pending = prefab;
+        Pending = tower;
         CurrentMode = mode;
-        CreateGhost(prefab);
+        CreateGhost(tower);
         ShowPlacementHelpers();
     }
 
@@ -130,20 +129,19 @@ public class TowerPlacer : MonoBehaviour
         Pending = null;
         CurrentMode = Mode.None;
 
-        TooltipManager.HideFor(this);
-        if (PathPreview.Instance != null) PathPreview.Instance.HideCoverage();
-        ClearNoBuildDiscs();
+        TooltipManager.HideFor(this);        ClearNoBuildDiscs();
         foreach (TowerController t in TowerController.Towers) t.HideRange();
     }
 
     // Ghost tower
-    private void CreateGhost(TowerController prefab)
+    private void CreateGhost(TowerDefinition tower)
     {
-        ghost = Instantiate(prefab.gameObject);
-        ghost.name = "Ghost_" + prefab.name;
+        ghostTower = Instantiate(tower.prefab);
+        ghost = ghostTower.gameObject;
+        ghost.name = "Ghost_" + tower.displayName;
         ghost.tag = "Untagged";
-        ghostTower = ghost.GetComponent<TowerController>();
-        ghostTower.enabled = false; // doesn't shoot
+        ghostTower.enabled = false; // doesn't attack
+        ghostTower.Init(tower);
         foreach (Collider c in ghost.GetComponentsInChildren<Collider>()) c.enabled = false;
         ghostRenderers = ghost.GetComponentsInChildren<MeshRenderer>();
         ghost.SetActive(false);
@@ -157,7 +155,6 @@ public class TowerPlacer : MonoBehaviour
         {
             ghost.SetActive(false);
             TooltipManager.HideFor(this);
-            if (PathPreview.Instance != null) PathPreview.Instance.HideCoverage();
             return;
         }
 
@@ -177,12 +174,12 @@ public class TowerPlacer : MonoBehaviour
         SetGhostLook(valid);
         ghostTower.ShowRange(valid ? t.validPlacement : t.invalidPlacement);
 
-        float coverage = PathPreview.Instance != null ? PathPreview.Instance.ShowCoverage(point, Pending.Range) : 0f;
+        float range = ghostTower.Stats.range;
 
         if (TooltipManager.Instance != null)
             TooltipManager.Instance.Show(this,
-                $"{Pending.displayName}  ·  {cost} {s.skillPointsName}",
-                error ?? string.Format(s.coverageFormat, coverage),
+                $"{ghostTower.DisplayName}  ·  {cost} {s.skillPointsName}",
+                error ?? $"Range {ghostTower.Stats.range:0.#}",
                 valid ? t.validPlacement : t.invalidPlacement);
     }
 
@@ -254,8 +251,8 @@ public class TowerPlacer : MonoBehaviour
             return false;
         }
 
-        TowerController tower = Instantiate(Pending, point, Quaternion.identity);
-        tower.SourcePrefab = Pending;
+        TowerController tower = Instantiate(Pending.prefab, point, Quaternion.identity);
+        tower.Init(Pending);
         tower.PaidCost = cost;
         placedCount[Pending] = PlacedCount(Pending) + 1;
         LastPlacementFrame = Time.frameCount;
