@@ -11,6 +11,10 @@ public class EnemyController : MonoBehaviour
     public Image RemainingHealth;
     public Renderer bodyRenderer;
 
+    [Header("Knockback")]
+    [Tooltip("How fast a knockback pushes this enemy back (units per second).")]
+    public float knockbackSpeed = 12f;
+
     public EnemyDefinition Definition { get; private set; }
     public FactionDefinition Faction => Definition != null ? Definition.faction : null;
 
@@ -18,9 +22,16 @@ public class EnemyController : MonoBehaviour
     public bool IsAlive { get; private set; } = true;
     public int MaxHealth => Definition != null ? Mathf.Max(1, Definition.maxHealth) : 1;
     public int Health => health;
+    public bool IsKnockedBack => knockRemaining > 0f;
 
     private int health;
     private NavMeshAgent agent;
+
+    // Knockback
+    private Vector3[] route;
+    private float[] routeDistance;
+    private float knockRemaining;
+    private Vector3 fallbackDirection;
 
     private void Awake()
     {
@@ -53,6 +64,14 @@ public class EnemyController : MonoBehaviour
     {
         if (!IsAlive || agent == null) return;
         if (!agent.isOnNavMesh) return;
+
+        if (route == null && !agent.pathPending && agent.hasPath) SaveRoute();
+
+        if (knockRemaining > 0f)
+        {
+            UpdateKnockback();
+            return;
+        }
 
         if (agent.pathPending || !agent.hasPath) return;
 
@@ -108,6 +127,100 @@ public class EnemyController : MonoBehaviour
         }
         return found;
     }
+
+    // Knockback (Mechanic faction)
+
+    public void KnockBack(float distance)
+    {
+        if (!IsAlive || distance <= 0f || !agent.isOnNavMesh) return;
+
+        float resistance = Definition != null ? Definition.knockbackResistance : 0f;
+        distance *= 1f - Mathf.Clamp01(resistance);
+        if (distance <= 0.01f) return;
+
+        if (route == null)
+        {
+            Vector3 v = agent.velocity;
+            v.y = 0f;
+            if (v.sqrMagnitude < 0.01f) return;
+            fallbackDirection = -v.normalized;
+        }
+
+        knockRemaining = Mathf.Max(knockRemaining, distance);
+
+        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
+    }
+
+    private void UpdateKnockback()
+    {
+        float step = Mathf.Min(knockRemaining, knockbackSpeed * Time.deltaTime);
+        knockRemaining -= step;
+
+        Vector3 position = transform.position;
+        Vector3 target = route != null
+            ? RoutePointAt(RouteProgress(position) - step)
+            : position + fallbackDirection * step;
+
+        Vector3 move = target - position;
+        move.y = 0f;
+        agent.Move(move);
+
+        if (knockRemaining <= 0f)
+        {
+            knockRemaining = 0f;
+            agent.isStopped = false;
+        }
+    }
+
+    private void SaveRoute()
+    {
+        Vector3[] corners = agent.path.corners;
+        if (corners.Length < 2) return;
+
+        route = corners;
+        routeDistance = new float[route.Length];
+        for (int i = 1; i < route.Length; i++)
+            routeDistance[i] = routeDistance[i - 1] + Flat(route[i] - route[i - 1]).magnitude;
+    }
+
+    private float RouteProgress(Vector3 p)
+    {
+        Vector3 flatP = Flat(p);
+        float bestSqr = float.MaxValue;
+        float progress = 0f;
+
+        for (int i = 0; i < route.Length - 1; i++)
+        {
+            Vector3 a = Flat(route[i]);
+            Vector3 ab = Flat(route[i + 1]) - a;
+            float lengthSqr = ab.sqrMagnitude;
+            if (lengthSqr < 0.0001f) continue;
+
+            float t = Mathf.Clamp01(Vector3.Dot(flatP - a, ab) / lengthSqr);
+            float sqr = (flatP - (a + ab * t)).sqrMagnitude;
+            if (sqr < bestSqr)
+            {
+                bestSqr = sqr;
+                progress = routeDistance[i] + Mathf.Sqrt(lengthSqr) * t;
+            }
+        }
+        return progress;
+    }
+
+    private Vector3 RoutePointAt(float distance)
+    {
+        distance = Mathf.Max(0f, distance);
+        for (int i = 0; i < route.Length - 1; i++)
+        {
+            float segment = routeDistance[i + 1] - routeDistance[i];
+            if (distance <= routeDistance[i + 1] && segment > 0.0001f)
+                return Vector3.Lerp(route[i], route[i + 1], (distance - routeDistance[i]) / segment);
+        }
+        return route[route.Length - 1];
+    }
+
+    private static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
 
     // Remaining path distance to HQ (smaller = closer)
     public float GetDistanceAlongPath()

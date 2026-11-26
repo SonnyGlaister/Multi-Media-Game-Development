@@ -1,7 +1,6 @@
 using System.Text;
 using UnityEngine;
 
-// Every number a tower can have
 [System.Serializable]
 public class TowerStats
 {
@@ -19,6 +18,10 @@ public class TowerStats
     public int piercing;
     public float projectileSpeed;
 
+    [Header("Mechanic (knockback)")]
+    [Tooltip("How far enemies are pushed back along the route, in units.")]
+    public float knockback;
+
     public TowerStats Copy() => (TowerStats)MemberwiseClone();
 
     public void Add(TowerStats bonus)
@@ -30,6 +33,7 @@ public class TowerStats
         projectiles += bonus.projectiles;
         piercing += bonus.piercing;
         projectileSpeed += bonus.projectileSpeed;
+        knockback += bonus.knockback;
     }
 
     public static string Describe(TowerStats baseStats, TowerStats stats)
@@ -52,6 +56,7 @@ public class TowerStats
         if (baseStats.projectiles > 1 || stats.projectiles > 1) Line("Shots", baseStats.projectiles, stats.projectiles, "0");
         Line("Pierce", baseStats.piercing, stats.piercing, "0");
         Line("Splash", baseStats.aoeRadius, stats.aoeRadius, "0.#");
+        Line("Knockback", baseStats.knockback, stats.knockback, "0.#");
         return sb.ToString().TrimEnd('\n');
     }
 
