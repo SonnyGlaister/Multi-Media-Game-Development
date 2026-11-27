@@ -8,6 +8,7 @@ public class WaveIndicatorView : MonoBehaviour
     public Image pillBackground;
     public TextMeshProUGUI waveText;
     public Image progressFill;
+    public TextMeshProUGUI remainingText;
     public WaveBanner banner;
 
     private GameController gc;
@@ -37,10 +38,12 @@ public class WaveIndicatorView : MonoBehaviour
         {
             int defeated = Mathf.Max(0, sp.SpawnedThisWave - EnemyController.Alive.Count);
             progressFill.fillAmount = total > 0 ? (float)defeated / total : 0f;
+            remainingText.text = Mathf.Max(0, total - defeated).ToString();
         }
         else
         {
             progressFill.fillAmount = 0f;
+            remainingText.text = total.ToString();
         }
     }
 

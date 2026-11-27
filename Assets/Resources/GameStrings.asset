@@ -13,43 +13,27 @@ MonoBehaviour:
   m_Name: GameStrings
   m_EditorClassIdentifier: 
   skillPointsName: Skill Points
-  skillTreeTitle: Skill Tree
   baseName: Human HQ
   baseHitFormat: '{0} breached {1} (-{2})'
   waveFormat: Wave {0} / {1}
   waveBannerFormat: WAVE {0}
   finalWave: FINAL WAVE
+  nextWaveTitle: Incoming
   startPrompt: Press Start, then build defences before the first wave arrives.
   startButton: Start
+  callNowButton: Call now
+  earlyBonusFormat: +{0} {1} for calling early
   waveClearedFormat: Wave {0} repelled
-  pressureLabel: Pressure
-  atRiskFormat: 'At risk: {0}'
-  nothingAtRisk: No skills at risk
-  perkTakenFormat: The AI acquired your {0}
-  perkTakenLabel: Acquired by the AI
-  pressureTooltip: 'Every AI model that reaches {0} adds pressure. It slowly fades
-    over time.
+  pressureLabel: Influence
+  lockedLabel: CAPTURED
+  nextHitRevokesFormat: 'Next breach: lose {0}'
+  revokedToastFormat: '{0} acquired your {1}'
+  lockedToastFormat: '{0} has captured its research branch'
+  pressureTooltipFormat: 'Every {0} model that reaches {1} adds influence.
 
-    When the bar fills, the AI takes your most recent skill and the
-    bar drops back to {1:P0}.'
-  buildTowersButton: 'Build  [B]'
-  hideTowersButton: 'Hide  [B]'
-  nextCostFormat: next {0}
-  towerHint: 'Drag onto the map, or click then click the map.
-
-    Right-click /
-    Esc cancels. Hold Shift to place several.'
-  towerHoverHint: "{0}  \xB7  Tier {1}\n<size=80%>Click for details</size>"
-  tierFormat: Tier {0}
-  tierUpFormat: '{0} towers upgraded to {1}'
-  tierDownFormat: The AI downgraded your {0} towers to {1}
-  unlocksTierFormat: Upgrades {0} towers to {1}
-  sellFormat: Sell  +{0}
-  sellConfirmFormat: Click again to sell  +{0}
-  errOnPath: Can't build on the route
-  errNearTower: Too close to another tower
-  errNearBase: Too close to HQ
-  errNeedSkillPoints: Need {0} more
+    When
+    the bar fills, {0} acquires your highest {0} upgrade and you can''t research
+    it again.'
   victoryTitle: HUMANITY HOLDS
   defeatTitle: HQ OVERRUN
   wavesSurvivedFormat: '{0} / {1} waves survived'

@@ -79,6 +79,13 @@ public class EnemySpawner : MonoBehaviour
         SetupTimeRemaining = SetupDuration;
     }
 
+    public float SkipSetup()
+    {
+        float skipped = Mathf.Max(0f, SetupTimeRemaining);
+        SetupTimeRemaining = 0f;
+        return skipped;
+    }
+
     public void GetComposition(List<(EnemyDefinition def, int count)> into)
     {
         into.Clear();

@@ -24,13 +24,6 @@ MonoBehaviour:
   success: {r: 0.38, g: 0.86, b: 0.46, a: 1}
   info: {r: 0.36, g: 0.72, b: 0.98, a: 1}
   disabled: {r: 0.24, g: 0.26, b: 0.3, a: 1}
-  bonus: {r: 0.45, g: 0.95, b: 0.55, a: 1}
-  validPlacement: {r: 0.36, g: 0.9, b: 1, a: 0.9}
-  invalidPlacement: {r: 1, g: 0.3, b: 0.3, a: 0.9}
-  selectedRange: {r: 0.36, g: 0.9, b: 1, a: 0.35}
-  hoverRange: {r: 1, g: 1, b: 1, a: 0.2}
-  neighbourRange: {r: 1, g: 1, b: 1, a: 0.08}
-  noBuild: {r: 1, g: 0.25, b: 0.25, a: 0.35}
   displayFont: {fileID: 0}
   bodyFont: {fileID: 0}
   monoFont: {fileID: 0}

@@ -3,21 +3,17 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Game/Perk")]
 public class PerkDefinition : ScriptableObject
 {
+    // Bonuses should be used to add, Multipliers should be used to multiply
     public string displayName = "Perk";
     public int cost = 10;
-    [TextArea] public string description = "";
+    public float cooldownMultiplier = 1f;
+    public float rangeMultiplier = 1f;
+    public int piercingBonus = 0;
+    public int damageBonus = 0;
+    public float aoeRangeBonus = 0;
+// AOE damage is represented by a multiple of the base damage but is added to the original value i.e first value can be 0.2 and then next could be 0.3 which would make 0.5 maybe that's dumb
+    public float aoeDamageMultiplier = 0f;
+    public string description = "";
     public Sprite image;
     public Sprite textBoxImage;
-
-    [Header("Tier upgrade")]
-    [Tooltip("0 = normal perk. 2 or 3 = buying this upgrades this branch's towers to that tier.")]
-    public int unlocksTier = 0;
-
-    [Header("Stat changes (only this branch's towers)")]
-    [Tooltip("Multiplies the time between attacks. 0.85 = 15% faster.")]
-    public float cooldownMultiplier = 1f;
-    [Tooltip("Multiplies range. 1.2 = 20% further.")]
-    public float rangeMultiplier = 1f;
-    [Tooltip("Added on top of the tier's stats. Leave a field at 0 to not change it.")]
-    public TowerStats bonus = new TowerStats();
 }
