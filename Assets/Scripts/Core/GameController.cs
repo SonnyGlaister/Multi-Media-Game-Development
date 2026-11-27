@@ -79,7 +79,7 @@ public class GameController : MonoBehaviour
         skillPoints = startingSkillPoints;
         BaseHealth = startingBaseHealth;
         currentWave = 0;
-        Time.timeScale = 1f;
+        Time.timeScale = 3f;
     }
 
     private void OnDestroy()
