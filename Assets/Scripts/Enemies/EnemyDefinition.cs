@@ -13,6 +13,8 @@ public class EnemyDefinition : ScriptableObject
     public int reward;
     public int damageToBase;
     public int pressurePerHit;
+    [Tooltip("0 = full knockback, 0.5 = pushed half as far, 1 = can't be knocked back.")]
+    [Range(0f, 1f)] public float knockbackResistance = 0f;
 
     [Header("Look")]
     public float scale;

@@ -1,41 +1,36 @@
 using System.Collections.Generic;
+using System.Linq;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Bottom-left card before/between waves
+// Before/between waves
 public class NextWaveCard : MonoBehaviour
 {
     public CanvasGroup group;
     public TextMeshProUGUI titleText;
-    public TextMeshProUGUI hintText;
-    public Image timerRadial;
     public TextMeshProUGUI timerText;
-    public Transform chipParent;
-    public CompositionChip chipTemplate;
+    [Tooltip("Image Type = Filled, Fill Method = Horizontal. Drains as the setup time runs out.")]
+    public RectTransform timerFill;
+    public Transform pillParent;
+    public FactionPill pillTemplate;
+    [Tooltip("Only shown before the first wave.")]
     public Button startButton;
     public TextMeshProUGUI startLabel;
-    public Button callNowButton;
-    public TextMeshProUGUI callNowLabel;
 
     private GameController gc;
-    private readonly List<CompositionChip> chips = new();
+    private readonly List<FactionPill> pills = new();
     private readonly List<(EnemyDefinition def, int count)> composition = new();
     private bool visible = true;
-    private Coroutine fadeCo;
 
     private void Start()
     {
         gc = GameController.Instance;
-        GameStrings s = GameStrings.Current;
-
-        startLabel.text = s.startButton;
-        hintText.text = s.startPrompt;
+        startLabel.text = GameStrings.Current.startButton;
         startButton.onClick.AddListener(() => gc.StartGame());
-        callNowButton.onClick.AddListener(() => gc.CallWaveEarly());
-
         gc.SetupStarted += OnSetupStarted;
-        RebuildComposition();
+        Rebuild();
     }
 
     private void OnDestroy()
@@ -43,45 +38,51 @@ public class NextWaveCard : MonoBehaviour
         if (gc != null) gc.SetupStarted -= OnSetupStarted;
     }
 
-    private void OnSetupStarted(int wave) => RebuildComposition();
+    // A new wave is coming: refresh the tiles and give the card a little pop
+    private void OnSetupStarted(int wave)
+    {
+        Rebuild();
+        transform.DOKill(true);
+        transform.DOPunchScale(Vector3.one * 0.05f, 0.25f, 1, 0f).SetUpdate(true);
+    }
 
     private void Update()
     {
-        GameStrings s = GameStrings.Current;
         bool preStart = !gc.HasGameStarted;
         bool setup = gc.HasGameStarted && !gc.HasWaveStarted && !gc.IsGameOver;
         SetVisible(preStart || setup);
         if (!visible) return;
 
         startButton.gameObject.SetActive(preStart);
-        callNowButton.gameObject.SetActive(setup);
-        hintText.gameObject.SetActive(preStart);
 
         int waveNo = Mathf.Min(gc.currentWave + 1, gc.TotalWaves);
-        titleText.text = $"{s.nextWaveTitle}  ·  {string.Format(s.waveFormat, waveNo, gc.TotalWaves)}";
+        titleText.text = string.Format(GameStrings.Current.waveFormat, waveNo, gc.TotalWaves);
 
-        float remaining = gc.spawner.SetupTimeRemaining;
+        float remaining = Mathf.Max(0f, gc.spawner.SetupTimeRemaining);
         float duration = gc.spawner.SetupDuration;
-        timerRadial.fillAmount = preStart ? 1f : (duration > 0f ? Mathf.Clamp01(remaining / duration) : 0f);
-        timerText.text = preStart ? "--" : Mathf.CeilToInt(Mathf.Max(0f, remaining)).ToString();
-
-        int bonus = gc.EarlyCallBonusPreview;
-        callNowLabel.text = bonus > 0 ? $"{s.callNowButton}  +{bonus}" : s.callNowButton;
+        timerText.text = preStart ? "" : $"{Mathf.CeilToInt(remaining)}s";
+        float k = preStart ? 1f : (duration > 0f ? Mathf.Clamp01(remaining / duration) : 0f);
+        timerFill.anchorMax = new Vector2(k, 1f);
     }
 
-    private void RebuildComposition()
+    // One tile per AI company, biggest first
+    private void Rebuild()
     {
         gc.spawner.GetComposition(composition);
-        while (chips.Count < composition.Count)
+        var byFaction = composition
+            .GroupBy(c => c.def.faction)
+            .Select(g => (faction: g.Key, count: g.Sum(c => c.count)))
+            .OrderByDescending(x => x.count)
+            .ToList();
+
+        while (pills.Count < byFaction.Count)
+            pills.Add(Instantiate(pillTemplate, pillParent));
+
+        for (int i = 0; i < pills.Count; i++)
         {
-            CompositionChip c = Instantiate(chipTemplate, chipParent);
-            chips.Add(c);
-        }
-        for (int i = 0; i < chips.Count; i++)
-        {
-            bool used = i < composition.Count;
-            chips[i].gameObject.SetActive(used);
-            if (used) chips[i].Bind(composition[i].def, composition[i].count);
+            bool used = i < byFaction.Count;
+            pills[i].gameObject.SetActive(used);
+            if (used) pills[i].Bind(byFaction[i].faction, byFaction[i].count);
         }
     }
 
@@ -89,7 +90,9 @@ public class NextWaveCard : MonoBehaviour
     {
         if (v == visible) return;
         visible = v;
-        if (fadeCo != null) StopCoroutine(fadeCo);
-        fadeCo = UITween.Fade(this, group, v ? 1f : 0f, 0.2f);
+        group.DOKill();
+        group.interactable = v;
+        group.blocksRaycasts = v;
+        group.DOFade(v ? 1f : 0f, 0.2f).SetUpdate(true);
     }
 }

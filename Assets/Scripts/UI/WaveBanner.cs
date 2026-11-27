@@ -1,4 +1,4 @@
-using System.Collections;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ public class WaveBanner : MonoBehaviour
     public TextMeshProUGUI label;
     public float holdTime = 0.9f;
 
-    private Coroutine co;
+    private Sequence sequence;
 
     private void Awake()
     {
@@ -18,34 +18,27 @@ public class WaveBanner : MonoBehaviour
         group.interactable = false;
     }
 
+    // Pops in at the centre, holds, then flies into the wave pill and shrinks away
     public void Play(string text, RectTransform shrinkTarget)
     {
-        if (co != null) StopCoroutine(co);
-        co = StartCoroutine(Run(text, shrinkTarget));
-    }
+        sequence?.Kill();
 
-    private IEnumerator Run(string text, RectTransform target)
-    {
         label.text = text;
         Vector3 centre = new Vector3(Screen.width * 0.5f, Screen.height * 0.62f, 0f);
+        Vector3 end = shrinkTarget != null ? shrinkTarget.position : centre;
         root.position = centre;
+        root.localScale = Vector3.one * 1.4f;
+        group.alpha = 0f;
 
-        yield return UITween.Run(0.25f, e =>
-        {
-            group.alpha = e;
-            root.localScale = Vector3.one * Mathf.Lerp(1.4f, 1f, e);
-        });
+        sequence = DOTween.Sequence().SetUpdate(true);
+        sequence.Append(group.DOFade(1f, 0.25f))
+                .Join(root.DOScale(1f, 0.25f))
+                .AppendInterval(holdTime)
+                .Append(root.DOMove(end, 0.35f))
+                .Join(root.DOScale(0.25f, 0.35f))
+                .Join(group.DOFade(0f, 0.35f));
 
-        yield return new WaitForSecondsRealtime(holdTime);
-
-        Vector3 end = target != null ? target.position : centre;
-        yield return UITween.Run(0.35f, e =>
-        {
-            root.position = Vector3.Lerp(centre, end, e);
-            root.localScale = Vector3.one * Mathf.Lerp(1f, 0.25f, e);
-            group.alpha = 1f - e;
-        });
-
-        if (target != null) UITween.Punch(this, target, 0.12f, 0.25f);
+        if (shrinkTarget != null)
+            sequence.AppendCallback(() => shrinkTarget.DOPunchScale(Vector3.one * 0.12f, 0.25f, 1, 0f).SetUpdate(true));
     }
 }

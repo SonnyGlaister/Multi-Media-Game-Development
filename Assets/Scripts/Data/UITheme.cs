@@ -1,7 +1,6 @@
-using TMPro;
 using UnityEngine;
 
-// Shared UI colours and fonts
+// Shared UI colours
 [CreateAssetMenu(menuName = "Game/UI Theme")]
 public class UITheme : ScriptableObject
 {
@@ -20,10 +19,7 @@ public class UITheme : ScriptableObject
         }
     }
 
-    [Header("Panels & text")]
-    public Color panel = new Color(0.07f, 0.08f, 0.10f, 0.88f);
-    public Color panelRaised = new Color(0.12f, 0.13f, 0.16f, 0.95f);
-    public Color panelBorder = new Color(1f, 1f, 1f, 0.08f);
+    [Header("Text")]
     public Color textPrimary = new Color(0.93f, 0.95f, 0.97f, 1f);
     public Color textMuted = new Color(0.60f, 0.65f, 0.72f, 1f);
 
@@ -36,10 +32,14 @@ public class UITheme : ScriptableObject
     public Color info = new Color(0.36f, 0.72f, 0.98f, 1f);
     public Color disabled = new Color(0.24f, 0.26f, 0.30f, 1f);
 
-    [Header("Fonts (optional)")]
-    public TMP_FontAsset displayFont;
-    public TMP_FontAsset bodyFont;
-    public TMP_FontAsset monoFont;
+    [Header("Towers")]
+    public Color bonus = new Color(0.45f, 0.95f, 0.55f, 1f);
+    public Color validPlacement = new Color(0.36f, 0.90f, 1f, 0.9f);
+    public Color invalidPlacement = new Color(1f, 0.30f, 0.30f, 0.9f);
+    public Color selectedRange = new Color(0.36f, 0.90f, 1f, 0.35f);
+    public Color hoverRange = new Color(1f, 1f, 1f, 0.2f);
+    public Color neighbourRange = new Color(1f, 1f, 1f, 0.08f);
+    public Color noBuild = new Color(1f, 0.25f, 0.25f, 0.35f);
 
     public Color MessageColor(MessageType type) => type switch
     {
