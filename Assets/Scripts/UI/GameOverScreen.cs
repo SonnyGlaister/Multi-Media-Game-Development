@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using DG.Tweening;
 
 // Victory/defeat modal with post-game stats/options.
 public class GameOverScreen : MonoBehaviour
@@ -52,15 +53,12 @@ public class GameOverScreen : MonoBehaviour
         statsText.text =
             Line("AI models stopped", st.enemiesKilled) + "\n" +
             Line($"{s.skillPointsName} earned", st.skillPointsEarned) + "\n" +
-            Line($"{s.skillPointsName} spent", st.skillPointsSpent) + "\n" +
-            Line("Research completed", st.perksBought) + "\n" +
-            Line("Research acquired by AI", st.perksLost);
+            Line($"{s.skillPointsName} spent", st.skillPointsSpent) + "\n";
 
         StringBuilder sb = new();
         foreach (FactionDefinition f in gc.Factions)
         {
-            int lost = PerkManager.Instance != null ? PerkManager.Instance.LostCount(f) : 0;
-            sb.Append($"<color=#{UITheme.Hex(f.color)}><b>{f.displayName}</b></color><pos=55%>{gc.GetTotalHits(f)} breaches<pos=80%>{lost} acquired\n");
+            sb.Append($"<color=#{UITheme.Hex(f.color)}><b>{f.displayName}</b></color><pos=70%>{gc.GetTotalHits(f)} breaches\n");
         }
         factionText.text = sb.ToString();
 
@@ -68,11 +66,12 @@ public class GameOverScreen : MonoBehaviour
 
         group.blocksRaycasts = true;
         group.interactable = true;
-        StartCoroutine(UITween.Run(0.35f, e =>
+        group.DOFade(1f, 0.35f).SetUpdate(true);
+        if (card != null)
         {
-            group.alpha = e;
-            if (card != null) card.localScale = Vector3.one * Mathf.Lerp(0.85f, 1f, e);
-        }));
+            card.localScale = Vector3.one * 0.85f;
+            card.DOScale(1f, 0.35f).SetUpdate(true);
+        }
     }
 
     private static string NextLevelName()
