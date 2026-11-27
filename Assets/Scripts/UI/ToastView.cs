@@ -1,5 +1,5 @@
 using System;
-using DG.Tweening;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,7 +25,7 @@ public class ToastView : MonoBehaviour
         if (accent != null) accent.color = UITheme.Current.MessageColor(type);
         label.text = message;
         group.alpha = 0f;
-        group.DOFade(1f, 0.15f).SetUpdate(true);
+        StartCoroutine(UITween.Run(0.15f, e => group.alpha = e));
     }
 
     public void Repeat(float duration)
@@ -33,20 +33,14 @@ public class ToastView : MonoBehaviour
         count++;
         label.text = $"{Message}  <color=#{UITheme.Hex(UITheme.Current.textMuted)}>×{count}</color>";
         remaining = duration;
-        transform.DOKill(true);
-        transform.DOPunchScale(Vector3.one * 0.05f, 0.15f, 1, 0f).SetUpdate(true);
+        UITween.Punch(this, transform, 0.05f, 0.15f);
     }
 
     public void Dismiss()
     {
         if (dismissing) return;
         dismissing = true;
-        group.DOKill();
-        group.DOFade(0f, 0.2f).SetUpdate(true).OnComplete(() =>
-        {
-            onDone?.Invoke();
-            Destroy(gameObject);
-        });
+        StartCoroutine(Out());
     }
 
     private void Update()
@@ -54,5 +48,12 @@ public class ToastView : MonoBehaviour
         if (dismissing) return;
         remaining -= Time.unscaledDeltaTime;
         if (remaining <= 0f) Dismiss();
+    }
+
+    private IEnumerator Out()
+    {
+        yield return UITween.Run(0.2f, e => group.alpha = 1f - e);
+        onDone?.Invoke();
+        Destroy(gameObject);
     }
 }

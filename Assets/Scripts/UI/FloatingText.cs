@@ -1,7 +1,6 @@
 using System;
 using TMPro;
 using UnityEngine;
-using DG.Tweening;
 
 public class FloatingText : MonoBehaviour
 {
@@ -44,7 +43,7 @@ public class FloatingText : MonoBehaviour
             if (sp.z < 0f) { Finish(); return; }
             basePos = sp;
         }
-        transform.position = basePos + Vector2.up * rise * DOVirtual.EasedValue(0f, 1f, k, Ease.OutCubic);
+        transform.position = basePos + Vector2.up * rise * UITween.EaseOut(k);
 
         Color c = color;
         c.a = 1f - Mathf.Clamp01((k - 0.5f) * 2f);

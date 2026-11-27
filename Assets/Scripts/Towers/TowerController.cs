@@ -1,137 +1,112 @@
-using System;
+using System.Collections;
 using System.Collections.Generic;
-using DG.Tweening;
 using UnityEngine;
-
-public enum TargetMode { First, Last, Strongest, Closest }
 
 public class TowerController : MonoBehaviour
 {
-    public static readonly List<TowerController> Towers = new();
+    public string displayName = "Tower";
+    public Sprite icon;
 
-    [Header("Parts")]
-    [Tooltip("Empty child the current tier's model is spawned under.")]
-    public Transform modelSlot;
-    [Tooltip("Child SpriteRenderer lying flat on the ground, 1 unit wide at scale 1, starts disabled.")]
-    public SpriteRenderer rangeRing;
+    public float range = 8;
+    public int damage = 1;
+    public int piercing = 0;
+    public float fireCooldown = 1f;
+    public float aoeRange = 0;
+    public float aoeDamage = 0;
 
-    [Header("Targeting")]
-    public TargetMode targetMode = TargetMode.First;
+    // Real stats after perks
+    float Cooldown => fireCooldown * PerkManager.Instance.CooldownMultiplier;
+    float Range => range * PerkManager.Instance.RangeMultiplier;
+    int Damage => damage + PerkManager.Instance.DamageBonus;
+    int Piercing => piercing + PerkManager.Instance.PiercingBonus;
+    float AOERange => aoeRange + PerkManager.Instance.AOERangeBonus;
+    float AOEDamage => aoeDamage + PerkManager.Instance.AOEDamageMultiplier;
 
-    public TowerDefinition Definition { get; private set; }
-    public int Tier { get; private set; }
-    public TowerTier TierData => Definition.GetTier(Tier);
-    public TowerStats Stats { get; private set; } = new TowerStats();
-    public string DisplayName => TierData.name;
-    public TowerAttack Attack { get; private set; }
+    public Rigidbody projectile;
+    public float projectileSpeed = 20;
 
-    public int PaidCost { get; set; }
-    public int SellValue => Mathf.RoundToInt(PaidCost * Definition.sellRefund);
+    public int startCost = 5;
+
+    public int currentCost { get; private set; }
+    private float TOWERCOSTMULTIPLIER = 2.0f; //Multiplier to increase tower cost by
+
+    private int placed;
 
     private float timer;
+    private EnemyController currentTarget;
 
-    private void Awake() => Attack = GetComponent<TowerAttack>();
-    private void OnEnable() => Towers.Add(this);
-    private void OnDisable() => Towers.Remove(this);
-
-    private void OnDestroy()
+    void Update()
     {
-        if (TowerSelection.Instance != null && TowerSelection.Instance.Selected == this)
-            TowerSelection.Instance.Deselect();
-    }
+        timer += Time.deltaTime;
+        currentTarget = FindTarget();
 
-    public void Init(TowerDefinition definition)
-    {
-        Definition = definition;
-        name = definition.displayName;
-        Refresh();
-    }
-
-    public void Refresh()
-    {
-        if (Definition == null) return;
-
-        PerkManager pm = PerkManager.Instance;
-        int tier = pm != null ? pm.TierOf(Definition) : 1;
-        Stats = pm != null ? pm.StatsFor(Definition, tier) : Definition.GetTier(tier).stats.Copy();
-
-        if (tier != Tier)
+        if (currentTarget != null)
         {
-            bool firstTime = Tier == 0;
-            Tier = tier;
-            SwapModel();
-            if (!firstTime)
+            // Debug: red line to the current target
+            Debug.DrawLine(transform.position, currentTarget.transform.position, Color.red);
+
+            // We should add debug to show radius of towers
+            if (timer >= Cooldown)
             {
-                modelSlot.DOKill(true);
-                modelSlot.DOPunchScale(Vector3.one * 0.3f, 0.4f, 1, 0f);
+                Shoot(currentTarget);
+                timer = 0f;
             }
         }
-
-        if (rangeRing != null && rangeRing.enabled) ShowRange(rangeRing.color); // range may have changed
     }
 
-    private void Update()
+    // Reset costs and placed totals.
+    public void ResetCost()
     {
-        if (Definition == null || Attack == null) return;
-        timer += Time.deltaTime;
-        if (timer >= Stats.cooldown && Attack.TryAttack()) timer = 0f;
+        placed = 0;
+        currentCost = startCost;
     }
 
-    private void SwapModel()
+    // Update the cost based on total placed.
+    public void updateCost()
     {
-        foreach (Transform child in modelSlot) Destroy(child.gameObject);
-        if (TierData.model != null) Instantiate(TierData.model, modelSlot);
+        placed += 1;
+        // First 2 towers cost the same
+        if (placed < 2)
+        {
+            currentCost = startCost;
+        }
+        else
+        {
+            currentCost = (int)(currentCost * TOWERCOSTMULTIPLIER);
+        }
+
     }
 
-    // Targeting
-    public EnemyController FindTarget(Predicate<EnemyController> filter = null)
+    // Picks the enemy in range that is furthest along the path
+    EnemyController FindTarget()
     {
-        List<EnemyController> list = FindTargets(1, filter);
-        return list.Count > 0 ? list[0] : null;
+        EnemyController best = null;
+        float bestProgress = Mathf.Infinity;
+
+        foreach (GameObject go in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            if (go == null) continue;
+            EnemyController enemy = go.GetComponent<EnemyController>();
+            if (enemy == null) continue;
+            if (!enemy.IsAlive) continue;
+
+            if (Vector3.Distance(transform.position, go.transform.position) > Range) continue;
+
+            float enemyDistance = enemy.GetDistanceAlongPath();
+
+            if (enemyDistance < bestProgress)
+            {
+                bestProgress = enemyDistance;
+                best = enemy;
+            }
+            // Debug.Log(bestProgress);
+        }
+        return best;
     }
 
-    public List<EnemyController> FindTargets(int count, Predicate<EnemyController> filter = null)
+    void Shoot(EnemyController target)
     {
-        List<EnemyController> inRange = EnemyController.InRadius(transform.position, Stats.range);
-        if (filter != null) inRange.RemoveAll(e => !filter(e));
-        inRange.Sort((a, b) => Score(b).CompareTo(Score(a))); // highest score first
-        if (inRange.Count > count) inRange.RemoveRange(count, inRange.Count - count);
-        return inRange;
+        Rigidbody instance = Instantiate(projectile, transform.position, Quaternion.identity);
+        instance.GetComponent<ProjectileController>().Launch(target.transform, Damage, projectileSpeed, Piercing, AOERange, AOEDamage);
     }
-
-    // Higher = better target
-    private float Score(EnemyController enemy) => targetMode switch
-    {
-        TargetMode.First => -enemy.GetDistanceAlongPath(),
-        TargetMode.Last => enemy.GetDistanceAlongPath(),
-        TargetMode.Strongest => enemy.Health,
-        _ => -Vector3.Distance(transform.position, enemy.transform.position),
-    };
-
-    // Selling
-    public void Sell()
-    {
-        GameController gc = GameController.Instance;
-        if (gc == null || gc.IsGameOver) return;
-        gc.Refund(SellValue);
-        if (TowerPlacer.Instance != null) TowerPlacer.Instance.OnTowerSold(Definition);
-        Destroy(gameObject);
-    }
-
-    // Range
-    public void ShowRange(Color color)
-    {
-        if (rangeRing == null) return;
-        float diameter = Stats.range * 2f;
-        rangeRing.transform.localScale = Vector3.one * (diameter / transform.lossyScale.x);
-        rangeRing.color = color;
-        rangeRing.enabled = true;
-    }
-
-    public void HideRange()
-    {
-        if (rangeRing != null) rangeRing.enabled = false;
-    }
-
-    public string StatsText() => TowerStats.Describe(TierData.stats, Stats);
 }

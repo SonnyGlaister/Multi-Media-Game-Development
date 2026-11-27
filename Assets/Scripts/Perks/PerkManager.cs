@@ -2,27 +2,27 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum PerkState { Available, CantAfford, NeedsPrevious, Owned, Revoked, Hidden }
+public enum PerkState { Available, CantAfford, NeedsPrevious, Owned, Revoked, LockedOut, Hidden }
 
 public class PerkManager : MonoBehaviour
 {
     public static PerkManager Instance { get; private set; }
 
-    [Tooltip("Can a perk the AI took be bought again?")]
-    public bool canRebuyRevoked = false;
-
-    public event Action<PerkDefinition> PerkBought;
-    public event Action<PerkDefinition> PerkRevoked;
+    public event Action<FactionDefinition, int> PerkRevoked; // faction, tier lost
     public event Action StateChanged;
 
-    public TowerDefinition[] Branches =>
-        TowerPlacer.Instance != null && TowerPlacer.Instance.towers != null ? TowerPlacer.Instance.towers : new TowerDefinition[0];
+    // Combined effect of every owned perk
+    public float CooldownMultiplier { get; private set; } = 1f;
+    public float RangeMultiplier { get; private set; } = 1f;
+    public int DamageBonus { get; private set; }
+    public int PiercingBonus { get; private set; }
+    public float AOERangeBonus { get; private set; }
+    public float AOEDamageMultiplier { get; private set; }
 
-    public int LostCount => revoked.Count;
-    public PerkDefinition NextToLose => owned.Count > 0 ? owned[owned.Count - 1] : null;
-
-    private readonly List<PerkDefinition> owned = new();
-    private readonly HashSet<PerkDefinition> revoked = new();
+    private readonly Dictionary<FactionDefinition, int> owned = new();
+    private readonly Dictionary<FactionDefinition, int> cap = new();
+    private readonly Dictionary<FactionDefinition, int> lost = new();
+    private readonly HashSet<FactionDefinition> announcedCapture = new();
 
     private void Awake()
     {
@@ -38,89 +38,103 @@ public class PerkManager : MonoBehaviour
     {
         GameController gc = GameController.Instance;
         gc.SkillPointsChanged += _ => StateChanged?.Invoke();
-        gc.PressureMaxed += RevokeLatest;
+        gc.PressureChanged += (f, p) => StateChanged?.Invoke();
     }
 
-    public bool IsOwned(PerkDefinition perk) => owned.Contains(perk);
+    public int OwnedCount(FactionDefinition f) => owned.TryGetValue(f, out int v) ? v : 0;
+    public int LostCount(FactionDefinition f) => lost.TryGetValue(f, out int v) ? v : 0;
+    private int Cap(FactionDefinition f) => cap.TryGetValue(f, out int v) ? v : f.perks.Length;
 
-    public PerkState GetState(TowerDefinition tower, int index)
+    public PerkDefinition NextToLose(FactionDefinition f)
     {
-        if (index < 0) return PerkState.Owned;
-        if (index >= tower.perks.Length) return PerkState.Hidden;
-
-        PerkDefinition perk = tower.perks[index];
-        if (owned.Contains(perk)) return PerkState.Owned;
-        if (revoked.Contains(perk) && !canRebuyRevoked) return PerkState.Revoked;
-        if (index > 0 && !owned.Contains(tower.perks[index - 1])) return PerkState.NeedsPrevious;
-        return GameController.Instance.CanAfford(perk.cost) ? PerkState.Available : PerkState.CantAfford;
+        int o = OwnedCount(f);
+        return o > 0 ? f.perks[o - 1] : null;
     }
 
-    public bool TryBuy(TowerDefinition tower, int index)
+    private void Update()
     {
-        if (GetState(tower, index) != PerkState.Available) return false;
-        PerkDefinition perk = tower.perks[index];
-        if (!GameController.Instance.Purchase(perk.cost)) return false;
+        GameController gc = GameController.Instance;
+        foreach (FactionDefinition f in gc.Factions)
+        {
+            if (!gc.IsLockedOut(f)) continue;
 
-        owned.Add(perk);
-        revoked.Remove(perk);
-        OnResearchChanged(tower, perk, true);
-        PerkBought?.Invoke(perk);
+            if (OwnedCount(f) > 0)
+            {
+                Revoke(f);
+            }
+            else if (announcedCapture.Add(f))
+            {
+                gc.ShowMessage(string.Format(GameStrings.Current.lockedToastFormat, f.displayName), MessageType.Danger);
+                StateChanged?.Invoke();
+            }
+        }
+    }
+
+    public PerkState GetState(FactionDefinition f, int tier)
+    {
+        if (GameController.Instance.IsLockedOut(f)) return PerkState.LockedOut;
+        if (tier >= Cap(f)) return PerkState.Revoked;
+        if (tier < OwnedCount(f)) return PerkState.Owned;
+        if (tier > OwnedCount(f)) return PerkState.NeedsPrevious;
+        return GameController.Instance.CanAfford(f.perks[tier].cost) ? PerkState.Available : PerkState.CantAfford;
+    }
+
+    public bool TryBuy(FactionDefinition f, int tier)
+    {
+        if (GetState(f, tier) != PerkState.Available) return false;
+        if (!GameController.Instance.Purchase(f.perks[tier].cost)) return false;
+
+        owned[f] = tier + 1;
+        GameController.Instance.Stats.perksBought++;
+        Recalculate();
+        StateChanged?.Invoke();
         return true;
     }
 
-    private void RevokeLatest()
+    // Lose the highest owned perk; it can't be bought again.
+    private void Revoke(FactionDefinition f)
     {
-        PerkDefinition perk = NextToLose;
-        if (perk == null) return;
+        int remaining = OwnedCount(f) - 1;
+        PerkDefinition lostPerk = f.perks[remaining];
 
-        owned.RemoveAt(owned.Count - 1);
-        revoked.Add(perk);
-        GameController.Instance.ShowMessage(string.Format(GameStrings.Current.perkTakenFormat, perk.displayName), MessageType.Danger);
+        owned[f] = remaining;
+        cap[f] = remaining;
+        lost[f] = LostCount(f) + 1;
+        GameController.Instance.Stats.perksLost++;
 
-        OnResearchChanged(BranchOf(perk), perk, false);
-        PerkRevoked?.Invoke(perk);
-    }
-
-    private void OnResearchChanged(TowerDefinition tower, PerkDefinition perk, bool gained)
-    {
-        if (perk.unlocksTier > 0 && tower != null)
+        if (remaining > 0)
         {
-            GameStrings s = GameStrings.Current;
-            string tierName = tower.GetTier(TierOf(tower)).name;
-            GameController.Instance.ShowMessage(
-                string.Format(gained ? s.tierUpFormat : s.tierDownFormat, tower.displayName, tierName),
-                gained ? MessageType.Success : MessageType.Danger);
+            GameController.Instance.ReducePressure(f, f.lockoutThreshold);
         }
 
-        foreach (TowerController t in TowerController.Towers) t.Refresh();
+        Recalculate();
+        GameController.Instance.ShowMessage(
+            string.Format(GameStrings.Current.revokedToastFormat, f.displayName, lostPerk.displayName), MessageType.Danger);
+        PerkRevoked?.Invoke(f, remaining);
         StateChanged?.Invoke();
     }
 
-    public TowerDefinition BranchOf(PerkDefinition perk)
+    private void Recalculate()
     {
-        foreach (TowerDefinition t in Branches)
-            if (t != null && Array.IndexOf(t.perks, perk) >= 0) return t;
-        return null;
-    }
+        CooldownMultiplier = 1f;
+        RangeMultiplier = 1f;
+        DamageBonus = 0;
+        PiercingBonus = 0;
+        AOERangeBonus = 0;
+        AOEDamageMultiplier = 0;
 
-    public int TierOf(TowerDefinition tower)
-    {
-        int tier = 1;
-        foreach (PerkDefinition p in tower.perks)
-            if (p != null && owned.Contains(p)) tier = Mathf.Max(tier, p.unlocksTier);
-        return Mathf.Min(tier, tower.MaxTier);
-    }
-
-    public TowerStats StatsFor(TowerDefinition tower, int tier)
-    {
-        TowerStats s = tower.GetTier(tier).stats.Copy();
-        foreach (PerkDefinition p in tower.perks)
+        foreach (FactionDefinition f in GameController.Instance.Factions)
         {
-            if (p == null || !owned.Contains(p)) continue;
-            s.Add(p.bonus);
-            s.cooldown *= p.cooldownMultiplier;
-            s.range *= p.rangeMultiplier;
+            for (int i = 0; i < OwnedCount(f); i++)
+            {
+                PerkDefinition p = f.perks[i];
+                CooldownMultiplier *= p.cooldownMultiplier;
+                RangeMultiplier *= p.rangeMultiplier;
+                DamageBonus += p.damageBonus;
+                PiercingBonus += p.piercingBonus;
+                AOERangeBonus += p.aoeRangeBonus;
+                AOEDamageMultiplier += p.aoeDamageMultiplier;
+            }
         }
-        return s;
     }
 }
