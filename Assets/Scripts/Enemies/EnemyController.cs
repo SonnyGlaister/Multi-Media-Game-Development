@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
+using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
@@ -73,7 +74,6 @@ public class EnemyController : MonoBehaviour
         if (!IsAlive || agent == null) return;
         if (!agent.isOnNavMesh) return;
         if (agent.pathPending || !agent.hasPath) return;
-        Debug.Log("Current position: " + transform.localPosition);
         RemainingDistance = agent.remainingDistance;
         if (RemainingDistance <= agent.stoppingDistance)
         {

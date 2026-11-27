@@ -8,12 +8,16 @@ using System;
 // Instance of Enemy Attribute
 public class SplittingOnDeathDefinition : EnemyAttributeDefinition
 {
-    public float splitAmount;
+    public int splitAmount;
+    public EnemyDefinition childEnemy;
+    public float delayBetween;
     public override void ApplyTo(EnemyController enemy)
     {
         // addComponent associated to the relevant behaviour to the applied enemy.
-        SplittingOnDeathDefinition behaviour = enemy.gameObject.AddComponent<SplittingOnDeathDefinition>();
+        SplittingOnDeathBehaviour behaviour = enemy.gameObject.AddComponent<SplittingOnDeathBehaviour>();
         // Reassign the default values.
         behaviour.splitAmount = splitAmount;
+        behaviour.childEnemy = childEnemy;
+        behaviour.delayBetween = delayBetween; 
     }
 }

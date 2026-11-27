@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -230,5 +232,34 @@ public class GameController : MonoBehaviour
         if (string.IsNullOrEmpty(sceneName)) return;
         Time.timeScale = 1f;
         SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+    }
+
+
+    // Encoding for enemies who split on death. Required in GameController as the enemy being destroyed interrupts the routine.
+
+    public void SpawnSplitChildren(EnemyController parent, EnemyDefinition childDef, int childAmount, float childDelay)
+    {
+        // Store parent information which will be deleted as enemy is dead
+        Vector3 parentPosition = parent.transform.position;
+        Vector3 parentDestination = parent.agent.destination;
+        StartCoroutine(SpawnChildren(parent, parentPosition, parentDestination, childDef, childAmount, childDelay));
+    }
+
+    private IEnumerator SpawnChildren(EnemyController parent, Vector3 parentPosition, Vector3 parentDestination, EnemyDefinition childDef, int childAmount, float childDelay)
+    {
+        // This is not a clean implementation.
+        // Need to immediately spawn and store first child, then use this EnemyController to spawn the next one.
+        EnemyController child = Instantiate(parent, parentPosition, Quaternion.identity);
+        child.Init(childDef);
+        child.SetTargetDestination(parentDestination);
+        yield return new WaitForSeconds(childDelay);
+
+        for (int i = 1; i < childAmount; i++)
+        {
+            EnemyController childClone = Instantiate(child, parentPosition, Quaternion.identity);
+            childClone.Init(childDef);
+            childClone.SetTargetDestination(parentDestination);
+            yield return new WaitForSeconds(childDelay);
+        }
     }
 }

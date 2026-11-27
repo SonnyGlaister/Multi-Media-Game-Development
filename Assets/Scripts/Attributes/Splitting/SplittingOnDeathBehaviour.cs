@@ -7,7 +7,8 @@ using UnityEngine.AI;
 public class SplittingOnDeathBehaviour : MonoBehaviour
 {
     public int splitAmount = 1;
-
+    public EnemyDefinition childEnemy;
+    public float delayBetween = 0.2f;
     private EnemyController enemy;
     public bool split = false;
 
@@ -40,9 +41,8 @@ public class SplittingOnDeathBehaviour : MonoBehaviour
         }
 
         split = true;
-
-        // For loop, create x amount of extra enemies with unique statistics to original one
-        // Inherit position from original.
-
+        // Require a method outside of this behaviour as the enemy is destroyed too quickly on death for the children to spawn with input delay.
+        GameController.Instance.SpawnSplitChildren(enemy, childEnemy, splitAmount, delayBetween);
     }
+
 }

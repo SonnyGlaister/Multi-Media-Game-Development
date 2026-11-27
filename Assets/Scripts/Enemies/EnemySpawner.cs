@@ -113,13 +113,12 @@ public class EnemySpawner : MonoBehaviour
     // IEnumerator allows the method to return pauses for n amount of time. SpawnEnemies calls method SpawnEnemy on all enemies in block.
     IEnumerator SpawnEnemies()
     {
-
         enemies = waves[waveNum].enemies;
         spawning = true; //Indicate that spawning has started so that we don't make more coroutines
         // For all blocks
         for (int i = 0; i < enemies.Length; i++)
         {
-            // Spawn the enemy type of the current block for the amount specified. Call for delay betwwen spawns
+            // Spawn the enemy type of the current block for the amount specified. Call for delay between spawns
             SpawnEnemy(enemies[i].enemyType);
             for (int j = 1; j< enemies[i].enemyAmount; j++)
             {
