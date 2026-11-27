@@ -14,12 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Boss
   faction: {fileID: 11400000, guid: 9acb1286769f641cc9ee05eccd5086e1, type: 2}
-  maxHealth: 60
+  maxHealth: 80
   speed: 1
   reward: 30
   damageToBase: 6
   pressurePerHit: 1
+  difficulty: 20
   scale: 1.5
   useFactionColor: 1
   customColor: {r: 1, g: 1, b: 1, a: 1}
   modelPrefab: {fileID: 0}
+  tier: 1
+  tierLabel: 
+  icon: {fileID: 0}
+  description: 
