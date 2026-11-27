@@ -29,20 +29,38 @@ public class GameStrings : ScriptableObject
     public string waveFormat = "Wave {0} / {1}";
     public string waveBannerFormat = "WAVE {0}";
     public string finalWave = "FINAL WAVE";
-    public string nextWaveTitle = "Incoming";
     public string startPrompt = "Press Start, then build defences before the first wave arrives.";
     public string startButton = "Start";
-    public string callNowButton = "Call now";
-    public string earlyBonusFormat = "+{0} {1} for calling early";
     public string waveClearedFormat = "Wave {0} repelled";
 
-    [Header("Factions (AI companies)")]
-    public string pressureLabel = "Influence";
-    public string lockedLabel = "CAPTURED";
-    public string nextHitRevokesFormat = "Next breach: lose {0}";
-    public string revokedToastFormat = "{0} acquired your {1}";
-    public string lockedToastFormat = "{0} has captured its research branch";
-    public string pressureTooltipFormat = "Every {0} model that reaches {1} adds influence.\nWhen the bar fills, {0} acquires your highest {0} upgrade and you can't research it again.";
+    [Header("AI pressure")]
+    public string pressureLabel = "AI Pressure";
+    public string atRiskFormat = "At risk: {0}";
+    public string nothingAtRisk = "No skills at risk";
+    public string perkTakenFormat = "The AI acquired your {0}";
+    public string perkTakenLabel = "Acquired by the AI";
+    [Tooltip("{0} = HQ name, {1} = where the bar drops back to")]
+    public string pressureTooltip = "Every AI model that reaches {0} adds pressure. It slowly fades over time.\nWhen the bar fills, the AI takes your most recent skill and the bar drops back to {1:P0}.";
+
+    [Header("Towers")]
+    public string buildTowersButton = "Build  [B]";
+    public string hideTowersButton = "Hide  [B]";
+    public string nextCostFormat = "next {0}";
+    public string towerHint = "Drag onto the map, or click then click the map.\nRight-click / Esc cancels. Hold Shift to place several.";
+    [Tooltip("{0} = tower faction, {1} = tier number")]
+    public string towerHoverHint = "{0}  ·  Tier {1}\n<size=80%>Click for details</size>";
+    public string tierFormat = "Tier {0}";
+    public string tierUpFormat = "{0} towers upgraded to {1}";
+    public string tierDownFormat = "The AI downgraded your {0} towers to {1}";
+    public string unlocksTierFormat = "Upgrades {0} towers to {1}";
+    public string sellFormat = "Sell  +{0}";
+    public string sellConfirmFormat = "Click again to sell  +{0}";
+
+    [Header("Placement errors")]
+    public string errOnPath = "Can't build on the route";
+    public string errNearTower = "Too close to another tower";
+    public string errNearBase = "Too close to HQ";
+    public string errNeedSkillPoints = "Need {0} more";
 
     [Header("End screen")]
     public string victoryTitle = "HUMANITY HOLDS";

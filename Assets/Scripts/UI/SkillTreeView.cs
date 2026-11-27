@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,15 +6,17 @@ public class SkillTreeView : MonoBehaviour
 {
     public PerkButton buttonPrefab;
     public Transform columnsParent;
+    [Tooltip("Optional TMP label prefab shown at the top of each column.")]
+    public TextMeshProUGUI headerPrefab;
 
     void Start()
     {
-        foreach (FactionDefinition f in GameController.Instance.Factions)
+        foreach (TowerDefinition tower in PerkManager.Instance.Branches)
         {
-            if (f.perks.Length == 0) continue;
+            if (tower == null || tower.perks.Length == 0) continue;
 
-            // One column per faction
-            GameObject column = new GameObject(f.displayName + "Column", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            // One column per tower faction
+            GameObject column = new GameObject(tower.displayName + "Column", typeof(RectTransform), typeof(VerticalLayoutGroup));
             column.transform.SetParent(columnsParent, false);
 
             VerticalLayoutGroup layout = column.GetComponent<VerticalLayoutGroup>();
@@ -24,10 +27,17 @@ public class SkillTreeView : MonoBehaviour
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
 
-            // One button per tier, tier 1 at the top
-            for (int tier = 0; tier < f.perks.Length; tier++)
+            if (headerPrefab != null)
             {
-                Instantiate(buttonPrefab, column.transform).Setup(f, tier);
+                TextMeshProUGUI header = Instantiate(headerPrefab, column.transform);
+                header.text = tower.displayName;
+                header.color = tower.color;
+            }
+
+            // One button per perk, first perk at the top
+            for (int i = 0; i < tower.perks.Length; i++)
+            {
+                Instantiate(buttonPrefab, column.transform).Setup(tower, i);
             }
         }
     }
