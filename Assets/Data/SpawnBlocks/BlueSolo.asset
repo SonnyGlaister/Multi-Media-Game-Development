@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960ded0375504d0438f32a4bbbd1b251, type: 3}
   m_Name: BlueSolo
   m_EditorClassIdentifier: 
-  enemyType: {fileID: 11400000, guid: e7293944b545044678faaf0b037079c7, type: 2}
+  enemyType: {fileID: 11400000, guid: ee221d54f52c8a740ae206e4b6438cc0, type: 2}
   enemyAmount: 1
   delayBetween: 0
   delayAfterGroup: 0.5
