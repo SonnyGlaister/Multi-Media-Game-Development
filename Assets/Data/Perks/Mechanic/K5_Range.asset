@@ -12,23 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f03f9b5b7c3a4ecabecaecc12004479, type: 3}
   m_Name: K5_Range
   m_EditorClassIdentifier: 
-  displayName: Multishot
+  displayName: Wider Reach
   cost: 30
-  description: 
+  description: 20% more range.
   image: {fileID: 0}
   textBoxImage: {fileID: 0}
   unlocksTier: 0
   cooldownMultiplier: 1
-  rangeMultiplier: 1
+  rangeMultiplier: 1.2
   bonus:
     range: 0
     cooldown: 0
     damage: 0
     aoeRadius: 0
-    projectiles: 1
+    projectiles: 0
     piercing: 0
     projectileSpeed: 0
-    stunTime: 0
-    abductChance: 0
     knockback: 0
-    summonCount: 0

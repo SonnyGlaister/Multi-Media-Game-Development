@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f03f9b5b7c3a4ecabecaecc12004479, type: 3}
   m_Name: K6_Turbine
   m_EditorClassIdentifier: 
-  displayName: Laser Turret
+  displayName: Turbine
   cost: 60
   description: 
   image: {fileID: 0}
@@ -28,3 +28,4 @@ MonoBehaviour:
     projectiles: 0
     piercing: 0
     projectileSpeed: 0
+    knockback: 0
