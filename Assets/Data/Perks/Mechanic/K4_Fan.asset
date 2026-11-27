@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f03f9b5b7c3a4ecabecaecc12004479, type: 3}
   m_Name: K4_Fan
   m_EditorClassIdentifier: 
-  displayName: Gun Turret
+  displayName: Mounted Fan
   cost: 30
   description: 
   image: {fileID: 0}
@@ -28,7 +28,4 @@ MonoBehaviour:
     projectiles: 0
     piercing: 0
     projectileSpeed: 0
-    stunTime: 0
-    abductChance: 0
     knockback: 0
-    summonCount: 0

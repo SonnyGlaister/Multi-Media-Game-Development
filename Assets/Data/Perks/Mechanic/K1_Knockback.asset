@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f03f9b5b7c3a4ecabecaecc12004479, type: 3}
   m_Name: K1_Knockback
   m_EditorClassIdentifier: 
-  displayName: FireRate+
-  cost: 15
-  description: Multiplied cooldown by 0.9
+  displayName: Knockback+
+  cost: 8
+  description: Pushes models farther back.
   image: {fileID: 21300000, guid: d48861020c21e204791249575b4ee639, type: 3}
   textBoxImage: {fileID: 21300000, guid: cfe2f4192a9024846bed3a50c823583c, type: 3}
   unlocksTier: 0
-  cooldownMultiplier: 0.9
+  cooldownMultiplier: 1
   rangeMultiplier: 1
   bonus:
     range: 0
@@ -28,7 +28,4 @@ MonoBehaviour:
     projectiles: 0
     piercing: 0
     projectileSpeed: 0
-    stunTime: 0
-    abductChance: 0
-    knockback: 0
-    summonCount: 0
+    knockback: 1
